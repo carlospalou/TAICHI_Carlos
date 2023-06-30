@@ -19,11 +19,9 @@ def get_label(index, hand, results):
             return text, coords
 
 
-#Define/name tools for drawing and detection
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
-#Capturing image
 cap = cv2.VideoCapture(0)
 
 #Defines hands that uses mp_hands which is mp.solutions.hands, we will use hands for detecting the landmarks
