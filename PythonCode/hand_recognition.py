@@ -24,7 +24,6 @@ mp_hands = mp.solutions.hands
 
 cap = cv2.VideoCapture(0)
 
-#Defines hands that uses mp_hands which is mp.solutions.hands, we will use hands for detecting the landmarks
 hands = mp_hands.Hands()
     
 while cap.isOpened():
