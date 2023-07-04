@@ -19,6 +19,15 @@ from scipy.ndimage import gaussian_filter
 
 ################### Functions ##################################
 
+def get_label(index, hand, results):
+    for idx, classification in enumerate(results.multi_handedness):
+        if classification.classification[0].index == index:
+            label = classification.classification[0].label
+            text = '{}'.format(label)
+            coords = tuple(np.multiply(
+                np.array((hand.landmark[mpHands.HandLandmark.WRIST].x, hand.landmark[mpHands.HandLandmark.WRIST].y)), [640, 480]).astype(int))
+
+            return text, coords
 
 def rotateY(origin, point, angle):
     ''' Function defined to rotate one point respect to naother point'''
@@ -491,8 +500,6 @@ while True:
         MunecaDerFinal= [rotadoMD[0],Muneca_der_Bueno[1],rotadoMD[1]]
         MunecaIzqFinal= [rotadoMI[0],Muneca_izq_Bueno[1],rotadoMI[1]]
 
-
-
         ''' Reduction factor for the human arm'''
         HumanHumeroDer = abs(mt.dist(HombroDerFinal,CodoDerFinal))
         if HumanHumeroDer < 0.26 or HumanHumeroDer > 0.28:
@@ -511,12 +518,6 @@ while True:
         BrazoHumanDer = HumanHumeroDer + HumanCubitoDer
         BrazoHumanIzq = HumanHumeroIzq + HumanCubitoIzq
         
-        if BrazoHumanDer <=0.8:
-            try:
-                ''' obtain factor Robot-human for arm length'''
-                factorRH_der = (0.5/BrazoHumanDer)
-            except:
-                factorRH_der = 1
 
         if BrazoHumanIzq <=0.8:
             try:
@@ -525,15 +526,8 @@ while True:
             except:
                 factorRH_izq = 1
 
-
             '''Calculate the translation between points of the human to the robot base reference
             Human to robot reference -> yhuman = zbase; xhuman=ybase; zhuman = xbase;'''
-            robotHombroDer = [0,0,0] 
-            Translation = [(robotHombroDer[0] + HombroDerFinal[2]),(robotHombroDer[1] + HombroDerFinal[0]),(robotHombroDer[2] + HombroDerFinal[1])]
-
-            robotHombroDer = [(Translation[0] - HombroDerFinal[2]),(Translation[1] - HombroDerFinal[0]),(Translation[2]- HombroDerFinal[1])]
-            robotCodoDer = [(Translation[0] - CodoDerFinal[2])*factorRH_der,(Translation[1] - CodoDerFinal[0])*factorRH_der,(Translation[2] - CodoDerFinal[1])*factorRH_der]
-            robotMunecaDer = [(Translation[0] - MunecaDerFinal[2])*factorRH_der,(Translation[1] - MunecaDerFinal[0])*factorRH_der,(Translation[2] - MunecaDerFinal[1])*factorRH_der]
 
             robotHombroIzq = [0,0,0] 
             Translation = [(robotHombroIzq[0] + HombroIzqFinal[2]),(robotHombroIzq[1] + HombroIzqFinal[0]),(robotHombroIzq[2] + HombroIzqFinal[1])]
@@ -542,13 +536,18 @@ while True:
             robotCodoIzq = [(Translation[0] - CodoIzqFinal[2])*factorRH_izq,(Translation[1] - CodoIzqFinal[0])*factorRH_izq,(Translation[2] - CodoIzqFinal[1])*factorRH_izq]
             robotMunecaIzq = [(Translation[0] - MunecaIzqFinal[2])*factorRH_izq,(Translation[1] - MunecaIzqFinal[0])*factorRH_izq,(Translation[2] - MunecaIzqFinal[1])*factorRH_izq]
 
-
-
             ''' Detection of left hand orientation'''
             if results.multi_handedness[0].classification[0].label == 'Left':    
 
+                for num, hand in enumerate(results.multi_hand_landmarks): 
+                    mpDraw.draw_landmarks(images, hand, mpHands.HAND_CONNECTIONS)
+
+                    if get_label(num, hand, results): 
+                        text, coord = get_label(num, hand, results) 
+                        cv2.putText(images, text, coord, font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
                 for handLms in results.multi_hand_landmarks:
-                    mpDraw.draw_landmarks(images, handLms, mpHands.HAND_CONNECTIONS)
+
                     Cero_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.WRIST]
                     Cinco_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.INDEX_FINGER_MCP]
                     Diecisiete_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.PINKY_MCP]
@@ -591,9 +590,72 @@ while True:
                 points_izq = np.asarray([CeroArrayIzq, CincoArrayIzq, DiecisieteArrayIzq])
                 MatRot_izq = HandPlaneOrientation(points_izq)
                 print(MatRot_izq)
+             
+            ''' Generate the values for the UR3 robot'''
+            #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
+            punto_izq = [robotMunecaIzq[0],robotMunecaIzq[1],robotMunecaIzq[2],1]
+            puntoCodo_izq = np.array([[robotCodoIzq[0]],[robotCodoIzq[1]],[robotCodoIzq[2]]])
+            
+            try:
+                MatrizBrazoIzq = np.array([
+                    [round(MatRot_izq[0,0],2),round(MatRot_izq[0,1],2),round(MatRot_izq[0,2],2),punto_izq[0]],
+                    [round(MatRot_izq[1,0],2),round(MatRot_izq[1,1],2),round(MatRot_izq[1,2],2),punto_izq[1]],
+                    [round(MatRot_izq[2,0],2),round(MatRot_izq[2,1],2),round(MatRot_izq[2,2],2),punto_izq[2]],
+                    [0,0,0,1]
+                    ], np.float64)
+               
+                if datos > 10:
+                    if MatRot_izq[0,0]== "nan" or MatRot_izq[0,1]== "nan" or MatRot_izq[0,2]== "nan":
+                        continue
+                    else:
+                        ''' Correct data is saved'''
+                        if h == 1:
+                            h = 0
+                            DATOSPRE.append(MatrizBrazoIzq)
+                            CORCODOPRE.append(puntoCodo_izq)
+                            print("Valor de codo",puntoCodo_izq[0,0])
+                            r = Rotation.from_matrix(MatRot_izq)
+                            angles = r.as_euler("xyz",degrees=False)
+                            efectorFinal = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles[0],angles[1],angles[2]]
+                            EFECTOR.append(efectorFinal)
+                        h = h + 1
 
+
+                datos = datos + 1
+
+            except ValueError:
+                print("Mathematical inconsistence")
+                
+        else:
+            print("Incorrect value")
+        
+
+        if BrazoHumanDer <=0.8:
+            try:
+                ''' obtain factor Robot-human for arm length'''
+                factorRH_der = (0.5/BrazoHumanDer)
+            except:
+                factorRH_der = 1
+        
+            '''Calculate the translation between points of the human to the robot base reference
+            Human to robot reference -> yhuman = zbase; xhuman=ybase; zhuman = xbase;'''
+
+            robotHombroDer = [0,0,0] 
+            Translation = [(robotHombroDer[0] + HombroDerFinal[2]),(robotHombroDer[1] + HombroDerFinal[0]),(robotHombroDer[2] + HombroDerFinal[1])]
+
+            robotHombroDer = [(Translation[0] - HombroDerFinal[2]),(Translation[1] - HombroDerFinal[0]),(Translation[2]- HombroDerFinal[1])]
+            robotCodoDer = [(Translation[0] - CodoDerFinal[2])*factorRH_der,(Translation[1] - CodoDerFinal[0])*factorRH_der,(Translation[2] - CodoDerFinal[1])*factorRH_der]
+            robotMunecaDer = [(Translation[0] - MunecaDerFinal[2])*factorRH_der,(Translation[1] - MunecaDerFinal[0])*factorRH_der,(Translation[2] - MunecaDerFinal[1])*factorRH_der]
+            
             ''' Detection of right hand orientation'''
-            if results.multi_handedness[0].classification[0].label == 'Right':    
+            if results.multi_handedness[0].classification[0].label == 'Right':   
+
+                for num, hand in enumerate(results.multi_hand_landmarks): 
+                    mpDraw.draw_landmarks(images, hand, mpHands.HAND_CONNECTIONS)
+
+                    if get_label(num, hand, results): 
+                        text, coord = get_label(num, hand, results) 
+                        cv2.putText(images, text, coord, font, 1, (255, 0, 0), 2, cv2.LINE_AA) 
 
                 for handLms in results.multi_hand_landmarks:
                     mpDraw.draw_landmarks(images, handLms, mpHands.HAND_CONNECTIONS)
@@ -640,8 +702,6 @@ while True:
                 MatRot_der = HandPlaneOrientation(points_der)
                 print(MatRot_der)
 
-
-             
             ''' Generate the values for the UR3 robot'''
             #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
             punto_izq = [robotMunecaIzq[0],robotMunecaIzq[1],robotMunecaIzq[2],1]
@@ -679,7 +739,7 @@ while True:
                 
         else:
             print("Incorrect value")
-        
+
 
     else:
         print("No person in front of the camera")
