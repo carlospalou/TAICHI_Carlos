@@ -18,6 +18,7 @@ def get_label(index, hand, results):
 
             return text, coords
 
+#prueba para github
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
