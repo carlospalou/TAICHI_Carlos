@@ -275,14 +275,22 @@ thickness = 2
 
 
 # ====== DATA ======
-global DATOS, CORCODO, EFECTOR, DATOSPRE, CORCODOPRE
-DATOS = []
-DATOSPRE = []
-CORCODO = []
-CORCODOPRE = []
-EFECTOR = []
-datos = 0
+global DATOS_IZQ, DATOS_DER, DATOSPRE_IZQ, DATOSPRE_DER, CORCODO_IZQ, CORCODO_DER, CORCODOPRE_IZQ, CORCODOPRE_DER, EFECTOR_IZQ, EFECTOR_DER
+
+DATOS_IZQ = []
+DATOS_DER = []
+DATOSPRE_IZQ = []
+DATOSPRE_DER = []
+CORCODO_IZQ = [] 
+CORCODO_DER = []
+CORCODOPRE_IZQ = []
+CORCODOPRE_DER = []
+EFECTOR_IZQ = []
+EFECTOR_DER = []
+datos_izq = 0
+datos_der = 0
 h = 0
+j = 0
 
 # ====== Realsense ======
 ''' Detect the camera RealSense D435i and activate it'''
@@ -604,24 +612,24 @@ while True:
                     [0,0,0,1]
                     ], np.float64)
                
-                if datos > 10:
+                if datos_izq > 10:
                     if MatRot_izq[0,0]== "nan" or MatRot_izq[0,1]== "nan" or MatRot_izq[0,2]== "nan":
                         continue
                     else:
                         ''' Correct data is saved'''
                         if h == 1:
                             h = 0
-                            DATOSPRE.append(MatrizBrazoIzq)
-                            CORCODOPRE.append(puntoCodo_izq)
-                            print("Valor de codo",puntoCodo_izq[0,0])
+                            DATOSPRE_IZQ.append(MatrizBrazoIzq)
+                            CORCODOPRE_IZQ.append(puntoCodo_izq)
+                            print("Valor de codo izquierdo",puntoCodo_izq[0,0])
                             r = Rotation.from_matrix(MatRot_izq)
                             angles = r.as_euler("xyz",degrees=False)
-                            efectorFinal = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles[0],angles[1],angles[2]]
-                            EFECTOR.append(efectorFinal)
+                            efectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles[0],angles[1],angles[2]]
+                            EFECTOR_IZQ.append(efectorFinal_izq)
                         h = h + 1
 
 
-                datos = datos + 1
+                datos_izq = datos_izq + 1
 
             except ValueError:
                 print("Mathematical inconsistence")
@@ -704,35 +712,35 @@ while True:
 
             ''' Generate the values for the UR3 robot'''
             #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
-            punto_izq = [robotMunecaIzq[0],robotMunecaIzq[1],robotMunecaIzq[2],1]
-            puntoCodo_izq = np.array([[robotCodoIzq[0]],[robotCodoIzq[1]],[robotCodoIzq[2]]])
+            punto_der = [robotMunecaDer[0],robotMunecaDer[1],robotMunecaDer[2],1]
+            puntoCodo_der= np.array([[robotCodoDer[0]],[robotCodoDer[1]],[robotCodoDer[2]]])
             
             try:
-                MatrizBrazoIzq = np.array([
-                    [round(MatRot_izq[0,0],2),round(MatRot_izq[0,1],2),round(MatRot_izq[0,2],2),punto_izq[0]],
-                    [round(MatRot_izq[1,0],2),round(MatRot_izq[1,1],2),round(MatRot_izq[1,2],2),punto_izq[1]],
-                    [round(MatRot_izq[2,0],2),round(MatRot_izq[2,1],2),round(MatRot_izq[2,2],2),punto_izq[2]],
+                MatrizBrazoDer = np.array([
+                    [round(MatRot_der[0,0],2),round(MatRot_der[0,1],2),round(MatRot_der[0,2],2),punto_der[0]],
+                    [round(MatRot_der[1,0],2),round(MatRot_der[1,1],2),round(MatRot_der[1,2],2),punto_der[1]],
+                    [round(MatRot_der[2,0],2),round(MatRot_der[2,1],2),round(MatRot_der[2,2],2),punto_der[2]],
                     [0,0,0,1]
                     ], np.float64)
                
-                if datos > 10:
-                    if MatRot_izq[0,0]== "nan" or MatRot_izq[0,1]== "nan" or MatRot_izq[0,2]== "nan":
+                if datos_der > 10:
+                    if MatRot_der[0,0]== "nan" or MatRot_der[0,1]== "nan" or MatRot_der[0,2]== "nan":
                         continue
                     else:
                         ''' Correct data is saved'''
-                        if h == 1:
-                            h = 0
-                            DATOSPRE.append(MatrizBrazoIzq)
-                            CORCODOPRE.append(puntoCodo_izq)
-                            print("Valor de codo",puntoCodo_izq[0,0])
-                            r = Rotation.from_matrix(MatRot_izq)
+                        if j == 1:
+                            j = 0
+                            DATOSPRE_DER.append(MatrizBrazoDer)
+                            CORCODOPRE.append(puntoCodo_der)
+                            print("Valor de codo derecho",puntoCodo_der[0,0])
+                            r = Rotation.from_matrix(MatRot_der)
                             angles = r.as_euler("xyz",degrees=False)
-                            efectorFinal = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles[0],angles[1],angles[2]]
-                            EFECTOR.append(efectorFinal)
-                        h = h + 1
+                            efectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles[0],angles[1],angles[2]]
+                            EFECTOR_DER.append(efectorFinal_der)
+                        j = j + 1
 
 
-                datos = datos + 1
+                datos_der = datos_der + 1
 
             except ValueError:
                 print("Mathematical inconsistence")
@@ -759,52 +767,90 @@ while True:
         break
 
 '''Filter orientation using a Gaussian Filter'''
-print(DATOSPRE)
-R1,R2,R3,R4,R5,R6,R7,R8,R9 = smooth_rotations(DATOSPRE,1) # Filter values [0.5, 1]
-XEnd,YEnd,ZEnd = smooth_endefector(DATOSPRE,1)
-#plot_smoothed_EndEfector(DATOSPRE,XEnd,YEnd,ZEnd)
-XElbow,YElbow,ZElbow = smooth_elbow(CORCODOPRE,1)
+print(DATOSPRE_IZQ)
+print(DATOSPRE_DER)
+
+L1,L2,L3,L4,L5,L6,L6,L8,L9 = smooth_rotations(DATOSPRE_IZQ,1)
+R1,R2,R3,R4,R5,R6,R7,R8,R9 = smooth_rotations(DATOSPRE_DER,1) # Filter values [0.5, 1]
+
+X_End_Izq,Y_End_Izq,Z_End_Izq = smooth_endefector(DATOSPRE_IZQ,1)
+X_End_Der,Y_End_Der,Z_End_Der = smooth_endefector(DATOSPRE_DER,1)
+X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq = smooth_elbow(CORCODOPRE_IZQ,1)
+X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der = smooth_elbow(CORCODOPRE_DER,1)
 #plot_smoothed_Elbow(CORCODOPRE,XElbow,YElbow,ZElbow)
+
 print("**********************")
 #print(R1)
 #plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 
 '''Save data filtered'''
 #print(DATOSPRE[0][0,0])
+for n in range(len(L1)):
+    
+    MatrizFiltered = np.array([
+        [L1[n],L2[n],L3[n],X_End_Izq[n]],
+        [L4[n],L5[n],L6[n],Y_End_Izq[n]],
+        [L7[n],L8[n],L9[n],Z_End_Izq[n]],
+        [0,0,0,1]
+        ], np.float64)
+    DATOS_IZQ.append(MatrizFiltered)
+
 for n in range(len(R1)):
     
     MatrizFiltered = np.array([
-        [R1[n],R2[n],R3[n],XEnd[n]],
-        [R4[n],R5[n],R6[n],YEnd[n]],
-        [R7[n],R8[n],R9[n],ZEnd[n]],
+        [R1[n],R2[n],R3[n],X_End_Der[n]],
+        [R4[n],R5[n],R6[n],Y_End_Der[n]],
+        [R7[n],R8[n],R9[n],Z_End_Der[n]],
         [0,0,0,1]
         ], np.float64)
-    DATOS.append(MatrizFiltered)
+    DATOS_DER.append(MatrizFiltered)
 
 
-for n in range(len(XElbow)):
-    puntoCodoFilter = np.array([[XElbow[n]],[YElbow[n]],[ZElbow[n]]])
-    CORCODO.append(puntoCodoFilter)
+for n in range(len(X_Elbow_Izq)):
+    puntoCodoFilter = np.array([[X_Elbow_Izq[n]],[Y_Elbow_Izq[n]],[Z_Elbow_Izq[n]]])
+    CORCODO_IZQ.append(puntoCodoFilter)
+
+for n in range(len(X_Elbow_Der)):
+    puntoCodoFilter = np.array([[X_Elbow_Der[n]],[Y_Elbow_Der[n]],[Z_Elbow_Der[n]]])
+    CORCODO_DER.append(puntoCodoFilter)
 
 
 print("--------------------------")
-print(DATOS)
+print(DATOS_IZQ)
+print(DATOS_DER)
 print("--------------------------")
+
+
 ''' Save all the values in .csv'''
-variable = np.asarray(DATOS).shape
-print("DATOS: ",variable[0])
-DATOS= np.reshape(DATOS, (variable[0]*4, -1))
-print(np.asarray(DATOS).shape)
-Modelo = pd.DataFrame(DATOS)
-Modelo.to_csv('/home/nox/BrazoCamara/ur_ikfast/DatosHumano/DatosBrazoHumano.csv',index=False, header=False) # use the path to wherever you want to save the files
+variable = np.asarray(DATOS_IZQ).shape
+print("DATOS IZQ: ",variable[0])
+DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1))
+print(np.asarray(DATOS_IZQ).shape)
+Modelo_izq = pd.DataFrame(DATOS_IZQ)
+Modelo_izq.to_csv('/home/carlos/TAICHI/HumanData/DatosBrazoIzquierdo.csv',index=False, header=False) 
 
-variable2 = np.asarray(CORCODO).shape
-CORCODO= np.reshape(CORCODO, (variable2[0]*3, -1))
-ModeloCodo = pd.DataFrame(CORCODO)
-ModeloCodo.to_csv('/home/nox/BrazoCamara/ur_ikfast/DatosHumano/CodoHumano.csv',index=False, header=False)
+variable2 = np.asarray(DATOS_DER).shape
+print("DATOS DER: ",variable2[0])
+DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
+print(np.asarray(DATOS_DER).shape)
+Modelo_der = pd.DataFrame(DATOS_DER)
+Modelo_der.to_csv('/home/carlos/TAICHI/HumanData/DatosBrazoDerecho.csv',index=False, header=False) 
 
-ModeloEfectorFinal = pd.DataFrame(EFECTOR)
-ModeloEfectorFinal.to_csv('/home/nox/BrazoCamara/ur_ikfast/DatosHumano/EfectorFinal.csv',index=False, header=False)
+variable3 = np.asarray(CORCODO_IZQ).shape
+CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1))
+ModeloCodo_izq = pd.DataFrame(CORCODO_IZQ)
+ModeloCodo_izq.to_csv('/home/carlos/TAICHI/HumanData/CodoIzquierdo.csv',index=False, header=False)
+
+variable4 = np.asarray(CORCODO_DER).shape
+CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
+ModeloCodo_der = pd.DataFrame(CORCODO_DER)
+ModeloCodo_der.to_csv('/home/carlos/TAICHI/HumanData/CodoDerecho.csv',index=False, header=False)
+
+ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
+ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI/HumanData/EfectorFinalIzquierdo.csv',index=False, header=False)
+
+ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
+ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI/HumanData/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
 print("Application Closing")
