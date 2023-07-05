@@ -352,7 +352,7 @@ print("Depth Scale for Camera SN",device,"is: ",depth_scale)
 
 # ====== Set clipping distance ======
 ''' Generate the maximun distance for the camera range to detect'''
-clipping_distance_in_meters = 5
+clipping_distance_in_meters = 2
 clipping_distance = clipping_distance_in_meters / depth_scale
 print("Configuration Successful for SN", device)
 
@@ -596,9 +596,11 @@ while True:
                     DiecisieteArrayIzq = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Z_DIECISITE_IZQ)
                 
                 points_izq = np.asarray([CeroArrayIzq, CincoArrayIzq, DiecisieteArrayIzq])
+                #print(points_izq)
                 MatRot_izq = HandPlaneOrientation(points_izq)
-                print(MatRot_izq)
-             
+                #print(MatRot_izq)
+            
+            
             ''' Generate the values for the UR3 robot'''
             #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
             punto_izq = [robotMunecaIzq[0],robotMunecaIzq[1],robotMunecaIzq[2],1]
@@ -622,9 +624,9 @@ while True:
                             DATOSPRE_IZQ.append(MatrizBrazoIzq)
                             CORCODOPRE_IZQ.append(puntoCodo_izq)
                             print("Valor de codo izquierdo",puntoCodo_izq[0,0])
-                            r = Rotation.from_matrix(MatRot_izq)
-                            angles = r.as_euler("xyz",degrees=False)
-                            efectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles[0],angles[1],angles[2]]
+                            r1 = Rotation.from_matrix(MatRot_izq)
+                            angles1 = r1.as_euler("xyz",degrees=False)
+                            efectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
                             EFECTOR_IZQ.append(efectorFinal_izq)
                         h = h + 1
 
@@ -637,7 +639,7 @@ while True:
         else:
             print("Incorrect value")
         
-
+        
         if BrazoHumanDer <=0.8:
             try:
                 ''' obtain factor Robot-human for arm length'''
@@ -654,6 +656,7 @@ while True:
             robotHombroDer = [(Translation[0] - HombroDerFinal[2]),(Translation[1] - HombroDerFinal[0]),(Translation[2]- HombroDerFinal[1])]
             robotCodoDer = [(Translation[0] - CodoDerFinal[2])*factorRH_der,(Translation[1] - CodoDerFinal[0])*factorRH_der,(Translation[2] - CodoDerFinal[1])*factorRH_der]
             robotMunecaDer = [(Translation[0] - MunecaDerFinal[2])*factorRH_der,(Translation[1] - MunecaDerFinal[0])*factorRH_der,(Translation[2] - MunecaDerFinal[1])*factorRH_der]
+            
             
             ''' Detection of right hand orientation'''
             if results.multi_handedness[0].classification[0].label == 'Right':   
@@ -733,9 +736,9 @@ while True:
                             DATOSPRE_DER.append(MatrizBrazoDer)
                             CORCODOPRE.append(puntoCodo_der)
                             print("Valor de codo derecho",puntoCodo_der[0,0])
-                            r = Rotation.from_matrix(MatRot_der)
-                            angles = r.as_euler("xyz",degrees=False)
-                            efectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles[0],angles[1],angles[2]]
+                            r2 = Rotation.from_matrix(MatRot_der)
+                            angles2 = r2.as_euler("xyz",degrees=False)
+                            efectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
                             EFECTOR_DER.append(efectorFinal_der)
                         j = j + 1
 
@@ -748,7 +751,7 @@ while True:
         else:
             print("Incorrect value")
 
-
+    
     else:
         print("No person in front of the camera")
 

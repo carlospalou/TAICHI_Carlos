@@ -471,7 +471,7 @@ while True:
 
         ''' Reduction factor for the human arm'''
         HumanHumero = abs(mt.dist(HombroFinal,CodoFinal))
-        print(HumanHumero)
+        #print(HumanHumero)
         if HumanHumero < 0.26 or HumanHumero > 0.28:
             CodoFinal = project_point_on_line(HombroFinal,CodoFinal,0.27)
 
