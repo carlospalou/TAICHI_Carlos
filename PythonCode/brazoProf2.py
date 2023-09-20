@@ -352,7 +352,7 @@ print("Depth Scale for Camera SN",device,"is: ",depth_scale)
 
 # ====== Set clipping distance ======
 ''' Generate the maximun distance for the camera range to detect'''
-clipping_distance_in_meters = 2
+clipping_distance_in_meters = 5
 clipping_distance = clipping_distance_in_meters / depth_scale
 print("Configuration Successful for SN", device)
 
@@ -402,6 +402,13 @@ while True:
         ''' Draw body lines and save body references'''
         mpDraw.draw_landmarks(images, cuerpo.pose_landmarks, mpPose.POSE_CONNECTIONS)
 
+        for num, hand in enumerate(results.multi_hand_landmarks): 
+            mpDraw.draw_landmarks(images, hand, mpHands.HAND_CONNECTIONS)
+
+            if get_label(num, hand, results): 
+                text, coord = get_label(num, hand, results) 
+                cv2.putText(images, text, coord, font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
         codo_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
         muneca_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
         hombro_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER]
@@ -410,7 +417,7 @@ while True:
         muneca_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
         hombro_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
 
-        ''' calculate the angle of the elbow (just to check)'''
+        ''' Calculate the angle of the elbow (just to check)'''
         angulo_der = calculate_angle([hombro_der.x,hombro_der.y], [codo_der.x,codo_der.y], [muneca_der.x,muneca_der.y])
         angulo_izq = calculate_angle([hombro_izq.x,hombro_izq.y], [codo_izq.x,codo_izq.y], [muneca_izq.x,muneca_izq.y])
 
@@ -547,13 +554,6 @@ while True:
             ''' Detection of left hand orientation'''
             if results.multi_handedness[0].classification[0].label == 'Left':    
 
-                for num, hand in enumerate(results.multi_hand_landmarks): 
-                    mpDraw.draw_landmarks(images, hand, mpHands.HAND_CONNECTIONS)
-
-                    if get_label(num, hand, results): 
-                        text, coord = get_label(num, hand, results) 
-                        cv2.putText(images, text, coord, font, 1, (255, 0, 0), 2, cv2.LINE_AA)
-
                 for handLms in results.multi_hand_landmarks:
 
                     Cero_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.WRIST]
@@ -596,45 +596,45 @@ while True:
                     DiecisieteArrayIzq = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Z_DIECISITE_IZQ)
                 
                 points_izq = np.asarray([CeroArrayIzq, CincoArrayIzq, DiecisieteArrayIzq])
-                #print(points_izq)
+                print(points_izq)
                 MatRot_izq = HandPlaneOrientation(points_izq)
-                #print(MatRot_izq)
+                print(MatRot_izq)
             
             
-            ''' Generate the values for the UR3 robot'''
-            #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
-            punto_izq = [robotMunecaIzq[0],robotMunecaIzq[1],robotMunecaIzq[2],1]
-            puntoCodo_izq = np.array([[robotCodoIzq[0]],[robotCodoIzq[1]],[robotCodoIzq[2]]])
-            
-            try:
-                MatrizBrazoIzq = np.array([
-                    [round(MatRot_izq[0,0],2),round(MatRot_izq[0,1],2),round(MatRot_izq[0,2],2),punto_izq[0]],
-                    [round(MatRot_izq[1,0],2),round(MatRot_izq[1,1],2),round(MatRot_izq[1,2],2),punto_izq[1]],
-                    [round(MatRot_izq[2,0],2),round(MatRot_izq[2,1],2),round(MatRot_izq[2,2],2),punto_izq[2]],
-                    [0,0,0,1]
-                    ], np.float64)
-               
-                if datos_izq > 10:
-                    if MatRot_izq[0,0]== "nan" or MatRot_izq[0,1]== "nan" or MatRot_izq[0,2]== "nan":
-                        continue
-                    else:
-                        ''' Correct data is saved'''
-                        if h == 1:
-                            h = 0
-                            DATOSPRE_IZQ.append(MatrizBrazoIzq)
-                            CORCODOPRE_IZQ.append(puntoCodo_izq)
-                            print("Valor de codo izquierdo",puntoCodo_izq[0,0])
-                            r1 = Rotation.from_matrix(MatRot_izq)
-                            angles1 = r1.as_euler("xyz",degrees=False)
-                            efectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
-                            EFECTOR_IZQ.append(efectorFinal_izq)
-                        h = h + 1
+                ''' Generate the values for the UR3 robot'''
+                #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
+                punto_izq = [robotMunecaIzq[0],robotMunecaIzq[1],robotMunecaIzq[2],1]
+                puntoCodo_izq = np.array([[robotCodoIzq[0]],[robotCodoIzq[1]],[robotCodoIzq[2]]])
+                
+                try:
+                    MatrizBrazoIzq = np.array([
+                        [round(MatRot_izq[0,0],2),round(MatRot_izq[0,1],2),round(MatRot_izq[0,2],2),punto_izq[0]],
+                        [round(MatRot_izq[1,0],2),round(MatRot_izq[1,1],2),round(MatRot_izq[1,2],2),punto_izq[1]],
+                        [round(MatRot_izq[2,0],2),round(MatRot_izq[2,1],2),round(MatRot_izq[2,2],2),punto_izq[2]],
+                        [0,0,0,1]
+                        ], np.float64)
+                
+                    if datos_izq > 10:
+                        if MatRot_izq[0,0]== "nan" or MatRot_izq[0,1]== "nan" or MatRot_izq[0,2]== "nan":
+                            continue
+                        else:
+                            ''' Correct data is saved'''
+                            if h == 1:
+                                h = 0
+                                DATOSPRE_IZQ.append(MatrizBrazoIzq)
+                                CORCODOPRE_IZQ.append(puntoCodo_izq)
+                                print("Valor de codo izquierdo",puntoCodo_izq[0,0])
+                                r1 = Rotation.from_matrix(MatRot_izq)
+                                angles1 = r1.as_euler("xyz",degrees=False)
+                                efectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
+                                EFECTOR_IZQ.append(efectorFinal_izq)
+                            h = h + 1
 
 
-                datos_izq = datos_izq + 1
+                    datos_izq = datos_izq + 1
 
-            except ValueError:
-                print("Mathematical inconsistence")
+                except ValueError:
+                    print("Mathematical inconsistence")
                 
         else:
             print("Incorrect value")
@@ -660,13 +660,6 @@ while True:
             
             ''' Detection of right hand orientation'''
             if results.multi_handedness[0].classification[0].label == 'Right':   
-
-                for num, hand in enumerate(results.multi_hand_landmarks): 
-                    mpDraw.draw_landmarks(images, hand, mpHands.HAND_CONNECTIONS)
-
-                    if get_label(num, hand, results): 
-                        text, coord = get_label(num, hand, results) 
-                        cv2.putText(images, text, coord, font, 1, (255, 0, 0), 2, cv2.LINE_AA) 
 
                 for handLms in results.multi_hand_landmarks:
                     mpDraw.draw_landmarks(images, handLms, mpHands.HAND_CONNECTIONS)
@@ -712,46 +705,46 @@ while True:
                 points_der = np.asarray([CeroArrayDer, CincoArrayDer, DiecisieteArrayDer])
                 MatRot_der = HandPlaneOrientation(points_der)
                 print(MatRot_der)
+        
 
-            ''' Generate the values for the UR3 robot'''
-            #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
-            punto_der = [robotMunecaDer[0],robotMunecaDer[1],robotMunecaDer[2],1]
-            puntoCodo_der= np.array([[robotCodoDer[0]],[robotCodoDer[1]],[robotCodoDer[2]]])
-            
-            try:
-                MatrizBrazoDer = np.array([
-                    [round(MatRot_der[0,0],2),round(MatRot_der[0,1],2),round(MatRot_der[0,2],2),punto_der[0]],
-                    [round(MatRot_der[1,0],2),round(MatRot_der[1,1],2),round(MatRot_der[1,2],2),punto_der[1]],
-                    [round(MatRot_der[2,0],2),round(MatRot_der[2,1],2),round(MatRot_der[2,2],2),punto_der[2]],
-                    [0,0,0,1]
-                    ], np.float64)
-               
-                if datos_der > 10:
-                    if MatRot_der[0,0]== "nan" or MatRot_der[0,1]== "nan" or MatRot_der[0,2]== "nan":
-                        continue
-                    else:
-                        ''' Correct data is saved'''
-                        if j == 1:
-                            j = 0
-                            DATOSPRE_DER.append(MatrizBrazoDer)
-                            CORCODOPRE.append(puntoCodo_der)
-                            print("Valor de codo derecho",puntoCodo_der[0,0])
-                            r2 = Rotation.from_matrix(MatRot_der)
-                            angles2 = r2.as_euler("xyz",degrees=False)
-                            efectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
-                            EFECTOR_DER.append(efectorFinal_der)
-                        j = j + 1
+                ''' Generate the values for the UR3 robot'''
+                #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
+                punto_der = [robotMunecaDer[0],robotMunecaDer[1],robotMunecaDer[2],1]
+                puntoCodo_der= np.array([[robotCodoDer[0]],[robotCodoDer[1]],[robotCodoDer[2]]])
+                
+                try:
+                    MatrizBrazoDer = np.array([
+                        [round(MatRot_der[0,0],2),round(MatRot_der[0,1],2),round(MatRot_der[0,2],2),punto_der[0]],
+                        [round(MatRot_der[1,0],2),round(MatRot_der[1,1],2),round(MatRot_der[1,2],2),punto_der[1]],
+                        [round(MatRot_der[2,0],2),round(MatRot_der[2,1],2),round(MatRot_der[2,2],2),punto_der[2]],
+                        [0,0,0,1]
+                        ], np.float64)
+                
+                    if datos_der > 10:
+                        if MatRot_der[0,0]== "nan" or MatRot_der[0,1]== "nan" or MatRot_der[0,2]== "nan":
+                            continue
+                        else:
+                            ''' Correct data is saved'''
+                            if j == 1:
+                                j = 0
+                                DATOSPRE_DER.append(MatrizBrazoDer)
+                                CORCODOPRE_DER.append(puntoCodo_der)
+                                print("Valor de codo derecho",puntoCodo_der[0,0])
+                                r2 = Rotation.from_matrix(MatRot_der)
+                                angles2 = r2.as_euler("xyz",degrees=False)
+                                efectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
+                                EFECTOR_DER.append(efectorFinal_der)
+                            j = j + 1
 
 
-                datos_der = datos_der + 1
+                    datos_der = datos_der + 1
 
-            except ValueError:
-                print("Mathematical inconsistence")
+                except ValueError:
+                    print("Mathematical inconsistence")
                 
         else:
             print("Incorrect value")
 
-    
     else:
         print("No person in front of the camera")
 

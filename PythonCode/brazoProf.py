@@ -265,7 +265,6 @@ fontScale = .5
 color = (0,0,0)
 thickness = 2
 
-
 # ====== DATA ======
 global DATOS, CORCODO, EFECTOR, DATOSPRE, CORCODOPRE
 DATOS = []
@@ -275,6 +274,7 @@ CORCODOPRE = []
 EFECTOR = []
 datos = 0
 h = 0
+
 # ====== Realsense ======
 ''' Detect the camera RealSense D435i and activate it'''
 realsense_ctx = rs.context()

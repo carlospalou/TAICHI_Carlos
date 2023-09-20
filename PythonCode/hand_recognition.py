@@ -18,7 +18,22 @@ def get_label(index, hand, results):
 
             return text, coords
 
-#prueba para github
+"""
+''' Detect the camera RealSense D435i and activate it'''
+realsense_ctx = rs.context()
+connected_devices = [] # List of serial numbers for present cameras
+for i in range(len(realsense_ctx.devices)):
+    detected_camera = realsense_ctx.devices[i].get_info(rs.camera_info.serial_number)
+    print("Detected_camera")
+    connected_devices.append(detected_camera)
+device = connected_devices[0] # For this code only one camera is neccesary
+pipeline = rs.pipeline()
+config = rs.config()
+background_removed_color = 153 # Grey color for the background
+
+''' Activate the stream caracteristics for the RealSense D435i'''
+config.enable_device(device)
+"""
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
