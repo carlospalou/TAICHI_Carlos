@@ -409,34 +409,56 @@ while True:
                 text, coord = get_label(num, hand, results) 
                 cv2.putText(images, text, coord, font, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
-        codo_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
-        muneca_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
-        hombro_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER]
-
+        hombro_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
         codo_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_ELBOW]
         muneca_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
-        hombro_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
+        
+        hombro_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER]
+        codo_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
+        muneca_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
 
         ''' Calculate the angle of the elbow (just to check)'''
-        angulo_der = calculate_angle([hombro_der.x,hombro_der.y], [codo_der.x,codo_der.y], [muneca_der.x,muneca_der.y])
         angulo_izq = calculate_angle([hombro_izq.x,hombro_izq.y], [codo_izq.x,codo_izq.y], [muneca_izq.x,muneca_izq.y])
+        angulo_der = calculate_angle([hombro_der.x,hombro_der.y], [codo_der.x,codo_der.y], [muneca_der.x,muneca_der.y])
+
+        # ----------- Human Shoulders ---------    
+        hombro_izq_X = int(hombro_izq.x*len(depth_image_flipped[0])) #Lo multiplica por el tamaño de la imagen pq la coordenada x esta normalizada entre 0 y 1
+        hombro_izq_Y = int(hombro_izq.y*len(depth_image_flipped))    #Coordenadas de hombro en la imagen
+        if hombro_izq_X  >= len(depth_image_flipped[0]):
+            hombro_izq_X  = len(depth_image_flipped[0]) - 1
+        if hombro_izq_Y >= len(depth_image_flipped):
+            hombro_izq_Y = len(depth_image_flipped) - 1
+        
+        hombro_der_X = int(hombro_der.x*len(depth_image_flipped[0])) 
+        hombro_der_Y = int(hombro_der.y*len(depth_image_flipped))
+        if hombro_der_X  >= len(depth_image_flipped[0]):
+            hombro_der_X  = len(depth_image_flipped[0]) - 1
+        if hombro_der_Y >= len(depth_image_flipped):
+            hombro_der_Y = len(depth_image_flipped) - 1
 
         #--------- Human Elbows --------
-        codo_der_X = int(codo_der.x*len(depth_image_flipped[0])) #Lo multiplica por el tamaño de la imagen pq la coordenada x esta normalizada entre 0 y 1
-        codo_der_Y = int(codo_der.y*len(depth_image_flipped))
-        if codo_der_X >= len(depth_image_flipped[0]):
-            codo_der_X = len(depth_image_flipped[0]) - 1
-        if codo_der_Y>= len(depth_image_flipped):
-            codo_der_Y = len(depth_image_flipped) - 1
-
         codo_izq_X = int(codo_izq.x*len(depth_image_flipped[0]))
         codo_izq_Y = int(codo_izq.y*len(depth_image_flipped))
         if codo_izq_X >= len(depth_image_flipped[0]):
             codo_izq_X = len(depth_image_flipped[0]) - 1
         if codo_izq_Y>= len(depth_image_flipped):
             codo_izq_Y = len(depth_image_flipped) - 1
+        
+        codo_der_X = int(codo_der.x*len(depth_image_flipped[0])) 
+        codo_der_Y = int(codo_der.y*len(depth_image_flipped))
+        if codo_der_X >= len(depth_image_flipped[0]):
+            codo_der_X = len(depth_image_flipped[0]) - 1
+        if codo_der_Y>= len(depth_image_flipped):
+            codo_der_Y = len(depth_image_flipped) - 1
 
         # ----------- Human Wrists --------
+        muneca_izq_X = int(muneca_izq.x*len(depth_image_flipped[0]))
+        muneca_izq_Y = int(muneca_izq.y*len(depth_image_flipped))
+        if muneca_izq_X >= len(depth_image_flipped[0]):
+            muneca_izq_X = len(depth_image_flipped[0]) - 1
+        if muneca_izq_Y >= len(depth_image_flipped):
+            muneca_izq_Y = len(depth_image_flipped) - 1
+        
         muneca_der_X = int(muneca_der.x*len(depth_image_flipped[0]))  
         muneca_der_Y = int(muneca_der.y*len(depth_image_flipped))
         if muneca_der_X >= len(depth_image_flipped[0]):
@@ -444,112 +466,106 @@ while True:
         if muneca_der_Y >= len(depth_image_flipped):
             muneca_der_Y = len(depth_image_flipped) - 1
 
-        muneca_izq_X = int(muneca_izq.x*len(depth_image_flipped[0]))
-        muneca_izq_Y = int(muneca_izq.y*len(depth_image_flipped))
-        if muneca_izq_X >= len(depth_image_flipped[0]):
-            muneca_izq_X = len(depth_image_flipped[0]) - 1
-        if muneca_izq_Y >= len(depth_image_flipped):
-            muneca_izq_Y = len(depth_image_flipped) - 1
 
-        # ----------- Human Shoulders ---------    
-        hombro_der_X = int(hombro_der.x*len(depth_image_flipped[0]))
-        hombro_der_Y = int(hombro_der.y*len(depth_image_flipped))
-        if hombro_der_X  >= len(depth_image_flipped[0]):
-            hombro_der_X  = len(depth_image_flipped[0]) - 1
-        if hombro_der_Y >= len(depth_image_flipped):
-            hombro_der_Y = len(depth_image_flipped) - 1
+        ''' Z values for the elbow, wrist and shoulder'''        
+        hombro_izq_Z = depth_image_flipped[hombro_izq_Y,hombro_izq_X] * depth_scale #Profundidad en metros del hombro, codo y muñeca
+        codo_izq_Z = depth_image_flipped[codo_izq_Y,codo_izq_X] * depth_scale 
+        muneca_izq_Z = depth_image_flipped[muneca_izq_Y,muneca_izq_X] * depth_scale 
 
-        hombro_izq_X = int(hombro_izq.x*len(depth_image_flipped[0]))
-        hombro_izq_Y = int(hombro_izq.y*len(depth_image_flipped))
-        if hombro_izq_X  >= len(depth_image_flipped[0]):
-            hombro_izq_X  = len(depth_image_flipped[0]) - 1
-        if hombro_izq_Y >= len(depth_image_flipped):
-            hombro_izq_Y = len(depth_image_flipped) - 1
-
-
-        ''' Z values for the elbow, wrist and shoulder'''
-        Z_CODO_DER = depth_image_flipped[codo_der_Y,codo_der_X] * depth_scale # meters
-        Z_MUNECA_DER = depth_image_flipped[muneca_der_Y,muneca_der_X] * depth_scale # meters
-        Z_HOMBRO_DER = depth_image_flipped[hombro_der_Y,hombro_der_X] * depth_scale # meters
-        Z_CODO_IZQ = depth_image_flipped[codo_izq_Y,codo_izq_X] * depth_scale # meters
-        Z_MUNECA_IZQ = depth_image_flipped[muneca_izq_Y,muneca_izq_X] * depth_scale # meters
-        Z_HOMBRO_IZQ = depth_image_flipped[hombro_izq_Y,hombro_izq_X] * depth_scale # meters
+        hombro_der_Z = depth_image_flipped[hombro_der_Y,hombro_der_X] * depth_scale 
+        codo_der_Z = depth_image_flipped[codo_der_Y,codo_der_X] * depth_scale 
+        muneca_der_Z = depth_image_flipped[muneca_der_Y,muneca_der_X] * depth_scale 
+        
 
         '''Values of the different studied points in meters'''
-        Codo_der_Bueno = rs.rs2_deproject_pixel_to_point(INTR,[codo_der_X,codo_der_Y],Z_CODO_DER)
-        Muneca_der_Bueno = rs.rs2_deproject_pixel_to_point(INTR,[muneca_der_X,muneca_der_Y],Z_MUNECA_DER)
-        Hombro_der_Bueno = rs.rs2_deproject_pixel_to_point(INTR,[hombro_der_X,hombro_der_Y],Z_HOMBRO_DER)
-        Codo_izq_Bueno = rs.rs2_deproject_pixel_to_point(INTR,[codo_izq_X,codo_izq_Y],Z_CODO_IZQ)
-        Muneca_izq_Bueno = rs.rs2_deproject_pixel_to_point(INTR,[muneca_izq_X,muneca_izq_Y],Z_MUNECA_IZQ)
-        Hombro_izq_Bueno = rs.rs2_deproject_pixel_to_point(INTR,[hombro_izq_X,hombro_izq_Y],Z_HOMBRO_IZQ)
+        #La función calcula las corrdenadas en el espacio del hombro, codo y muñeca a partir de los parámetros intrínsecos, las coordenadas en la imagen y la profundidad
+        Hombro_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[hombro_izq_X,hombro_izq_Y],hombro_izq_Z) #Hombro_izq_3D = (x, y, z) Sistema coordenadas cámara
+        Codo_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[codo_izq_X,codo_izq_Y],codo_izq_Z)
+        Muneca_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[muneca_izq_X,muneca_izq_Y],muneca_izq_Z)
+
+        Hombro_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[hombro_der_X,hombro_der_Y],hombro_der_Z)
+        Codo_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[codo_der_X,codo_der_Y],codo_der_Z)
+        Muneca_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[muneca_der_X,muneca_der_Y],muneca_der_Z)
         
-        ''' Calculate the rotation of the left shoulder to orientate correctly to the camera the body'''
-        theta = mt.atan2((Hombro_der_Bueno[2]-Hombro_izq_Bueno[2]),(Hombro_der_Bueno[0]-Hombro_izq_Bueno[0]))
-        theta = 180 - mt.degrees(theta)# Angle to rotate the left arm
-        # As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
+        ''' Calculate the rotation of the left shoulder to orientate correctly to the camera'''
+        theta = mt.atan2((Hombro_der_3D[2]-Hombro_izq_3D[2]),(Hombro_der_3D[0]-Hombro_izq_3D[0])) #Ángulo entre los hombros en el plano definido por XZ
+        theta = 180 - mt.degrees(theta) 
+
+        #As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
         if theta > 180:
             theta = -1*(360 - theta)
         else:
             theta = theta
-        #images = cv2.putText(images, f"THETA: {theta}", org5, font, fontScale, color, thickness, cv2.LINE_AA)
+        #images = cv2.putText(images, f"theta: {theta}", org, font, fontScale, color, thickness, cv2.LINE_AA)
 
         '''Generates the rotation for all the points'''
-        Pivote = (Hombro_izq_Bueno[0],Hombro_izq_Bueno[2])
-        RotHombroDer = (Hombro_der_Bueno[0],Hombro_der_Bueno[2])
-        RotHombroIzq = (Hombro_izq_Bueno[0],Hombro_izq_Bueno[2])
-        RotCodoDer = (Codo_der_Bueno[0],Codo_der_Bueno[2])
-        RotCodoIzq = (Codo_izq_Bueno[0],Codo_izq_Bueno[2])
-        RotMunecaDer= (Muneca_der_Bueno[0],Muneca_der_Bueno[2])
-        RotMunecaIzq= (Muneca_izq_Bueno[0],Muneca_izq_Bueno[2])
-        rotadoHD = rotateY(Pivote,RotHombroDer,mt.radians(theta))
-        rotadoHI = rotateY(Pivote,RotHombroIzq,mt.radians(theta))
-        rotadoCD = rotateY(Pivote,RotCodoDer,mt.radians(theta))
-        rotadoCI = rotateY(Pivote,RotCodoIzq,mt.radians(theta))
-        rotadoMD = rotateY(Pivote,RotMunecaDer,mt.radians(theta))
-        rotadoMI = rotateY(Pivote,RotMunecaIzq,mt.radians(theta))
+        #Rotamos para alinear y 180º en Y para pasar al sistema de coordenadas de la imagen
+        Pivote = (Hombro_izq_3D[0],Hombro_izq_3D[2]) #Rotamos sobre el hombro izquierdo
+        
+        rotar_hombro_izq = (Hombro_izq_3D[0],Hombro_izq_3D[2]) #Coordenadas x y z de los puntos a rotar
+        rotar_codo_izq = (Codo_izq_3D[0],Codo_izq_3D[2])
+        rotar_muneca_izq= (Muneca_izq_3D[0],Muneca_izq_3D[2])
 
-        HombroDerFinal= [rotadoHD[0],Hombro_der_Bueno[1],rotadoHD[1]]
-        HombroIzqFinal= [rotadoHI[0],Hombro_izq_Bueno[1],rotadoHI[1]]
-        CodoDerFinal= [rotadoCD[0],Codo_der_Bueno[1],rotadoCD[1]]
-        CodoIzqFinal= [rotadoCI[0],Codo_izq_Bueno[1],rotadoCI[1]]
-        MunecaDerFinal= [rotadoMD[0],Muneca_der_Bueno[1],rotadoMD[1]]
-        MunecaIzqFinal= [rotadoMI[0],Muneca_izq_Bueno[1],rotadoMI[1]]
+        rotar_hombro_der = (Hombro_der_3D[0],Hombro_der_3D[2])
+        rotar_codo_der = (Codo_der_3D[0],Codo_der_3D[2])
+        rotar_muneca_der= (Muneca_der_3D[0],Muneca_der_3D[2])
+        
+        hombro_izq_rotado = rotateY(Pivote,rotar_hombro_izq,mt.radians(theta)) #Rotación de los puntos en el plano XZ con la función rotateY
+        codo_izq_rotado = rotateY(Pivote,rotar_codo_izq,mt.radians(theta))
+        muneca_izq_rotado = rotateY(Pivote,rotar_muneca_izq,mt.radians(theta))
+
+        hombro_der_rotado = rotateY(Pivote,rotar_hombro_der,mt.radians(theta))
+        codo_der_rotado = rotateY(Pivote,rotar_codo_der,mt.radians(theta))
+        muneca_der_rotado = rotateY(Pivote,rotar_muneca_der,mt.radians(theta))
+
+        Hombro_izq_Final= [hombro_izq_rotado[0],Hombro_izq_3D[1],hombro_izq_rotado[1]] #Añadimos la componente Y que no ha cambiado 
+        Codo_izq_Final= [codo_izq_rotado[0],Codo_izq_3D[1],codo_izq_rotado[1]]
+        Muneca_izq_Final= [muneca_izq_rotado[0],Muneca_izq_3D[1],muneca_izq_rotado[1]]
+
+        Hombro_der_Final= [hombro_der_rotado[0],Hombro_der_3D[1],hombro_der_rotado[1]]
+        Codo_der_Final= [codo_der_rotado[0],Codo_der_3D[1],codo_der_rotado[1]]
+        Muneca_der_Final= [muneca_der_rotado[0],Muneca_der_3D[1],muneca_der_rotado[1]]
+
 
         ''' Reduction factor for the human arm'''
-        HumanHumeroDer = abs(mt.dist(HombroDerFinal,CodoDerFinal))
-        if HumanHumeroDer < 0.26 or HumanHumeroDer > 0.28:
-            CodoDerFinal = project_point_on_line(HombroDerFinal,CodoDerFinal,0.27)
-        HumanHumeroIzq = abs(mt.dist(HombroIzqFinal,CodoIzqFinal))
-        if HumanHumeroIzq < 0.26 or HumanHumeroIzq > 0.28:
-            CodoIzqFinal = project_point_on_line(HombroIzqFinal,CodoIzqFinal,0.27)
+        Human_Humero_izq = abs(mt.dist(Hombro_izq_Final,Codo_izq_Final))
+        if Human_Humero_izq < 0.26 or Human_Humero_izq > 0.28:
+            Codo_izq_Final = project_point_on_line(Hombro_izq_Final,Codo_izq_Final,0.27)
 
-        HumanCubitoDer = abs(mt.dist(CodoDerFinal,MunecaDerFinal))
-        if HumanCubitoDer < 0.23 or HumanCubitoDer > 0.25:
-            MunecaDerFinal = project_end_efector(CodoDerFinal,MunecaDerFinal,0.24)
-        HumanCubitoIzq = abs(mt.dist(CodoIzqFinal,MunecaIzqFinal))
-        if HumanCubitoIzq < 0.23 or HumanCubitoIzq > 0.25:
-            MunecaIzqFinal = project_end_efector(CodoIzqFinal,MunecaIzqFinal,0.24)
+        Human_Cubito_izq = abs(mt.dist(Codo_izq_Final,Muneca_izq_Final))
+        if Human_Cubito_izq < 0.23 or Human_Cubito_izq > 0.25:
+            Muneca_izq_Final = project_end_efector(Codo_izq_Final,Muneca_izq_Final,0.24)
+
+        Brazo_Human_izq = Human_Humero_izq + Human_Cubito_izq
+
+        Human_Humero_der = abs(mt.dist(Hombro_der_Final,Codo_der_Final))
+        if Human_Humero_der < 0.26 or Human_Humero_der > 0.28:
+            Codo_der_Final = project_point_on_line(Hombro_der_Final,Codo_der_Final,0.27)
+
+        Human_Cubito_der = abs(mt.dist(Codo_der_Final,Muneca_der_Final))
+        if Human_Cubito_der < 0.23 or Human_Cubito_der > 0.25:
+            Muneca_der_Final = project_end_efector(Codo_der_Final,Muneca_der_Final,0.24)
         
-        BrazoHumanDer = HumanHumeroDer + HumanCubitoDer
-        BrazoHumanIzq = HumanHumeroIzq + HumanCubitoIzq
+        Brazo_Human_der = Human_Humero_der + Human_Cubito_der
+        
         
 
-        if BrazoHumanIzq <=0.8:
+        if Brazo_Human_izq <=0.8:
             try:
-                ''' obtain factor Robot-human for arm length'''
-                factorRH_izq = (0.5/BrazoHumanIzq)
+                #Obtain Robot-Human factor for arm length
+                RH_factor_izq = (0.5/Brazo_Human_izq)
             except:
-                factorRH_izq = 1
+                RH_factor_izq = 1
 
-            '''Calculate the translation between points of the human to the robot base reference
-            Human to robot reference -> yhuman = zbase; xhuman=ybase; zhuman = xbase;'''
+            '''Cambiamos del sistema de coordenadas de la imagen al sistema de coordenadas del brazo izquierdo para lo que necesitamos una rotación de 90º en X
+            y una de -90º en Z, por lo que: x_base_izq = z_imagen; y_base_izq = (-) x_imagen; z_base_izq = (-) y_imagen'''
 
-            robotHombroIzq = [0,0,0] 
-            Translation = [(robotHombroIzq[0] + HombroIzqFinal[2]),(robotHombroIzq[1] + HombroIzqFinal[0]),(robotHombroIzq[2] + HombroIzqFinal[1])]
+            Robot_Hombro_izq = [0,0,0] 
+            Translation = [(Robot_Hombro_izq[0] + Hombro_izq_Final[2]),(Robot_Hombro_izq[1] + Hombro_izq_Final[0]),(Robot_Hombro_izq[2] + Hombro_izq_Final[1])]  
 
-            robotHombroIzq = [(Translation[0] - HombroIzqFinal[2]),(Translation[1] - HombroIzqFinal[0]),(Translation[2]- HombroIzqFinal[1])]
-            robotCodoIzq = [(Translation[0] - CodoIzqFinal[2])*factorRH_izq,(Translation[1] - CodoIzqFinal[0])*factorRH_izq,(Translation[2] - CodoIzqFinal[1])*factorRH_izq]
-            robotMunecaIzq = [(Translation[0] - MunecaIzqFinal[2])*factorRH_izq,(Translation[1] - MunecaIzqFinal[0])*factorRH_izq,(Translation[2] - MunecaIzqFinal[1])*factorRH_izq]
+            Robot_Hombro_izq = [(Translation[0] - Hombro_izq_Final[2]),(Translation[1] - Hombro_izq_Final[0]),(Translation[2]- Hombro_izq_Final[1])]
+            Robot_Codo_izq = [(Translation[0] - Codo_izq_Final[2])*RH_factor_izq,(Translation[1] - Codo_izq_Final[0])*RH_factor_izq,(Translation[2] - Codo_izq_Final[1])*RH_factor_izq]
+            Robot_Muneca_izq = [(Translation[0] - Muneca_izq_Final[2])*RH_factor_izq,(Translation[1] - Muneca_izq_Final[0])*RH_factor_izq,(Translation[2] - Muneca_izq_Final[1])*RH_factor_izq]
 
             ''' Detection of left hand orientation'''
             if results.multi_handedness[0].classification[0].label == 'Left':    
@@ -560,7 +576,6 @@ while True:
                     Cinco_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.INDEX_FINGER_MCP]
                     Diecisiete_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.PINKY_MCP]
                     
-                    '''Depth hand values for the 0,5,17 hand reference plane'''
                     Cero_izq_X = int(Cero_izq.x*len(depth_image_flipped[0]))
                     Cero_izq_Y = int(Cero_izq.y*len(depth_image_flipped))
                     if Cero_izq_X >= len(depth_image_flipped[0]):
@@ -586,31 +601,29 @@ while True:
                         Diecisiete_izq_Y = len(depth_image_flipped) - 1
 
                     ''' Z values for the left hand (depth)'''
-                    Z_CERO_IZQ = depth_image_flipped[Cero_izq_Y,Cero_izq_X] * depth_scale # meters
-                    Z_CINCO_IZQ = depth_image_flipped[Cinco_izq_Y,Cinco_izq_X] * depth_scale # meters
-                    Z_DIECISITE_IZQ = depth_image_flipped[Diecisiete_izq_Y,Diecisiete_izq_X] * depth_scale # meters
+                    Cero_izq_Z = depth_image_flipped[Cero_izq_Y,Cero_izq_X] * depth_scale 
+                    Cinco_izq_Z = depth_image_flipped[Cinco_izq_Y,Cinco_izq_X] * depth_scale 
+                    Diecisiete_izq_Z = depth_image_flipped[Diecisiete_izq_Y,Diecisiete_izq_X] * depth_scale 
 
                     '''Values of the different studied points in meters'''
-                    CeroArrayIzq = rs.rs2_deproject_pixel_to_point(INTR,[Cero_izq_X,Cero_izq_Y],Z_CERO_IZQ)
-                    CincoArrayIzq = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_izq_X,Cinco_izq_Y],Z_CINCO_IZQ)
-                    DiecisieteArrayIzq = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Z_DIECISITE_IZQ)
+                    Cero_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_izq_X,Cero_izq_Y],Cero_izq_Z)
+                    Cinco_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_izq_X,Cinco_izq_Y],Cinco_izq_Z)
+                    Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
                 
-                points_izq = np.asarray([CeroArrayIzq, CincoArrayIzq, DiecisieteArrayIzq])
-                print(points_izq)
-                MatRot_izq = HandPlaneOrientation(points_izq)
-                print(MatRot_izq)
+                Points_izq = np.asarray([Cero_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
+                MatRot_izq = HandPlaneOrientation(Points_izq)
             
             
                 ''' Generate the values for the UR3 robot'''
                 #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
-                punto_izq = [robotMunecaIzq[0],robotMunecaIzq[1],robotMunecaIzq[2],1]
-                puntoCodo_izq = np.array([[robotCodoIzq[0]],[robotCodoIzq[1]],[robotCodoIzq[2]]])
+                Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1]
+                PuntoCodo_izq = np.array([[Robot_Codo_izq[0]],[Robot_Codo_izq[1]],[Robot_Codo_izq[2]]])
                 
                 try:
                     MatrizBrazoIzq = np.array([
-                        [round(MatRot_izq[0,0],2),round(MatRot_izq[0,1],2),round(MatRot_izq[0,2],2),punto_izq[0]],
-                        [round(MatRot_izq[1,0],2),round(MatRot_izq[1,1],2),round(MatRot_izq[1,2],2),punto_izq[1]],
-                        [round(MatRot_izq[2,0],2),round(MatRot_izq[2,1],2),round(MatRot_izq[2,2],2),punto_izq[2]],
+                        [round(MatRot_izq[0,0],2),round(MatRot_izq[0,1],2),round(MatRot_izq[0,2],2),Punto_izq[0]],
+                        [round(MatRot_izq[1,0],2),round(MatRot_izq[1,1],2),round(MatRot_izq[1,2],2),Punto_izq[1]],
+                        [round(MatRot_izq[2,0],2),round(MatRot_izq[2,1],2),round(MatRot_izq[2,2],2),Punto_izq[2]],
                         [0,0,0,1]
                         ], np.float64)
                 
@@ -622,14 +635,13 @@ while True:
                             if h == 1:
                                 h = 0
                                 DATOSPRE_IZQ.append(MatrizBrazoIzq)
-                                CORCODOPRE_IZQ.append(puntoCodo_izq)
-                                print("Valor de codo izquierdo",puntoCodo_izq[0,0])
+                                CORCODOPRE_IZQ.append(PuntoCodo_izq)
+                                print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
                                 r1 = Rotation.from_matrix(MatRot_izq)
                                 angles1 = r1.as_euler("xyz",degrees=False)
-                                efectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
-                                EFECTOR_IZQ.append(efectorFinal_izq)
+                                EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
+                                EFECTOR_IZQ.append(EfectorFinal_izq)
                             h = h + 1
-
 
                     datos_izq = datos_izq + 1
 
@@ -640,34 +652,33 @@ while True:
             print("Incorrect value")
         
         
-        if BrazoHumanDer <=0.8:
+        if Brazo_Human_der <=0.8:
             try:
-                ''' obtain factor Robot-human for arm length'''
-                factorRH_der = (0.5/BrazoHumanDer)
+                #Obtain Robot-Human factor for arm length'''
+                RHfactor_der = (0.5/Brazo_Human_der)
             except:
-                factorRH_der = 1
+                RHfactor_der = 1
         
-            '''Calculate the translation between points of the human to the robot base reference
-            Human to robot reference -> yhuman = zbase; xhuman=ybase; zhuman = xbase;'''
+            '''Cambiamos del sistema de coordenadas de la imagen al sistema de coordenadas del brazo izquierdo para lo que necesitamos una rotación de 90º en X
+            y una de -90º en Z, por lo que: x_base_izq = z_imagen; y_base_izq = x_imagen; z_base_izq = y_imagen'''
 
-            robotHombroDer = [0,0,0] 
-            Translation = [(robotHombroDer[0] + HombroDerFinal[2]),(robotHombroDer[1] + HombroDerFinal[0]),(robotHombroDer[2] + HombroDerFinal[1])]
+            Robot_Hombro_der = [0,0,0] 
+            Translation = [(Robot_Hombro_der[0] + Hombro_der_Final[2]),(Robot_Hombro_der[1] + Hombro_der_Final[0]),(Robot_Hombro_der[2] + Hombro_der_Final[1])]
 
-            robotHombroDer = [(Translation[0] - HombroDerFinal[2]),(Translation[1] - HombroDerFinal[0]),(Translation[2]- HombroDerFinal[1])]
-            robotCodoDer = [(Translation[0] - CodoDerFinal[2])*factorRH_der,(Translation[1] - CodoDerFinal[0])*factorRH_der,(Translation[2] - CodoDerFinal[1])*factorRH_der]
-            robotMunecaDer = [(Translation[0] - MunecaDerFinal[2])*factorRH_der,(Translation[1] - MunecaDerFinal[0])*factorRH_der,(Translation[2] - MunecaDerFinal[1])*factorRH_der]
+            Robot_Hombro_der = [(Translation[0] - Hombro_der_Final[2]),(Translation[1] - Hombro_der_Final[0]),(Translation[2]- Hombro_der_Final[1])]
+            Robot_Codo_der = [(Translation[0] - Codo_der_Final[2])*RHfactor_der,(Translation[1] - Codo_der_Final[0])*RHfactor_der,(Translation[2] - Codo_der_Final[1])*RHfactor_der]
+            Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RHfactor_der,(Translation[1] - Muneca_der_Final[0])*RHfactor_der,(Translation[2] - Muneca_der_Final[1])*RHfactor_der]
             
             
             ''' Detection of right hand orientation'''
             if results.multi_handedness[0].classification[0].label == 'Right':   
 
                 for handLms in results.multi_hand_landmarks:
-                    mpDraw.draw_landmarks(images, handLms, mpHands.HAND_CONNECTIONS)
+                    
                     Cero_der = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.WRIST]
                     Cinco_der = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.INDEX_FINGER_MCP]
                     Diecisiete_der = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.PINKY_MCP]
                     
-                    '''Depth hand values for the 0,5,17 hand reference plane'''
                     Cero_der_X = int(Cero_der.x*len(depth_image_flipped[0]))
                     Cero_der_Y = int(Cero_der.y*len(depth_image_flipped))
                     if Cero_der_X >= len(depth_image_flipped[0]):
@@ -693,30 +704,27 @@ while True:
                         Diecisiete_der_Y = len(depth_image_flipped) - 1
 
                     ''' Z values for the left hand (depth)'''
-                    Z_CERO_DER = depth_image_flipped[Cero_der_Y,Cero_der_X] * depth_scale # meters
-                    Z_CINCO_DER = depth_image_flipped[Cinco_der_Y,Cinco_der_X] * depth_scale # meters
-                    Z_DIECISITE_DER = depth_image_flipped[Diecisiete_der_Y,Diecisiete_der_X] * depth_scale # meters
+                    Cero_der_Z = depth_image_flipped[Cero_der_Y,Cero_der_X] * depth_scale 
+                    Cinco_der_Z = depth_image_flipped[Cinco_der_Y,Cinco_der_X] * depth_scale 
+                    Diecisiete_der_Z = depth_image_flipped[Diecisiete_der_Y,Diecisiete_der_X] * depth_scale
 
                     '''Values of the different studied points in meters'''
-                    CeroArrayDer = rs.rs2_deproject_pixel_to_point(INTR,[Cero_der_X,Cero_der_Y],Z_CERO_DER)
-                    CincoArrayDer = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_der_X,Cinco_der_Y],Z_CINCO_DER)
-                    DiecisieteArrayDer = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Z_DIECISITE_DER)
+                    Cero_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_der_X,Cero_der_Y],Cero_der_Z)
+                    Cinco_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_der_X,Cinco_der_Y],Cinco_der_Z)
+                    Diecisiete_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Diecisiete_der_Z)
                 
-                points_der = np.asarray([CeroArrayDer, CincoArrayDer, DiecisieteArrayDer])
-                MatRot_der = HandPlaneOrientation(points_der)
-                print(MatRot_der)
-        
+                Points_der = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
+                MatRot_der = HandPlaneOrientation(Points_der)
 
                 ''' Generate the values for the UR3 robot'''
-                #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
-                punto_der = [robotMunecaDer[0],robotMunecaDer[1],robotMunecaDer[2],1]
-                puntoCodo_der= np.array([[robotCodoDer[0]],[robotCodoDer[1]],[robotCodoDer[2]]])
+                Punto_der = [Robot_Muneca_der[0],Robot_Muneca_der[1],Robot_Muneca_der[2],1]
+                PuntoCodo_der= np.array([[Robot_Codo_der[0]],[Robot_Codo_der[1]],[Robot_Codo_der[2]]])
                 
                 try:
                     MatrizBrazoDer = np.array([
-                        [round(MatRot_der[0,0],2),round(MatRot_der[0,1],2),round(MatRot_der[0,2],2),punto_der[0]],
-                        [round(MatRot_der[1,0],2),round(MatRot_der[1,1],2),round(MatRot_der[1,2],2),punto_der[1]],
-                        [round(MatRot_der[2,0],2),round(MatRot_der[2,1],2),round(MatRot_der[2,2],2),punto_der[2]],
+                        [round(MatRot_der[0,0],2),round(MatRot_der[0,1],2),round(MatRot_der[0,2],2),Punto_der[0]],
+                        [round(MatRot_der[1,0],2),round(MatRot_der[1,1],2),round(MatRot_der[1,2],2),Punto_der[1]],
+                        [round(MatRot_der[2,0],2),round(MatRot_der[2,1],2),round(MatRot_der[2,2],2),Punto_der[2]],
                         [0,0,0,1]
                         ], np.float64)
                 
@@ -728,14 +736,13 @@ while True:
                             if j == 1:
                                 j = 0
                                 DATOSPRE_DER.append(MatrizBrazoDer)
-                                CORCODOPRE_DER.append(puntoCodo_der)
-                                print("Valor de codo derecho",puntoCodo_der[0,0])
+                                CORCODOPRE_DER.append(PuntoCodo_der)
+                                print("Valor de codo derecho",PuntoCodo_der[0,0])
                                 r2 = Rotation.from_matrix(MatRot_der)
                                 angles2 = r2.as_euler("xyz",degrees=False)
-                                efectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
-                                EFECTOR_DER.append(efectorFinal_der)
+                                EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
+                                EFECTOR_DER.append(EfectorFinal_der)
                             j = j + 1
-
 
                     datos_der = datos_der + 1
 
@@ -766,7 +773,7 @@ while True:
 print(DATOSPRE_IZQ)
 print(DATOSPRE_DER)
 
-L1,L2,L3,L4,L5,L6,L6,L8,L9 = smooth_rotations(DATOSPRE_IZQ,1)
+L1,L2,L3,L4,L5,L6,L7,L8,L9 = smooth_rotations(DATOSPRE_IZQ,1)
 R1,R2,R3,R4,R5,R6,R7,R8,R9 = smooth_rotations(DATOSPRE_DER,1) # Filter values [0.5, 1]
 
 X_End_Izq,Y_End_Izq,Z_End_Izq = smooth_endefector(DATOSPRE_IZQ,1)
@@ -803,12 +810,12 @@ for n in range(len(R1)):
 
 
 for n in range(len(X_Elbow_Izq)):
-    puntoCodoFilter = np.array([[X_Elbow_Izq[n]],[Y_Elbow_Izq[n]],[Z_Elbow_Izq[n]]])
-    CORCODO_IZQ.append(puntoCodoFilter)
+    PuntoCodoFilterIzq = np.array([[X_Elbow_Izq[n]],[Y_Elbow_Izq[n]],[Z_Elbow_Izq[n]]])
+    CORCODO_IZQ.append(PuntoCodoFilterIzq)
 
 for n in range(len(X_Elbow_Der)):
-    puntoCodoFilter = np.array([[X_Elbow_Der[n]],[Y_Elbow_Der[n]],[Z_Elbow_Der[n]]])
-    CORCODO_DER.append(puntoCodoFilter)
+    PuntoCodoFilterDer = np.array([[X_Elbow_Der[n]],[Y_Elbow_Der[n]],[Z_Elbow_Der[n]]])
+    CORCODO_DER.append(PuntoCodoFilterDer)
 
 
 print("--------------------------")
@@ -852,5 +859,6 @@ ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI/HumanData/EfectorFinalDerecho.
 print("Application Closing")
 pipeline.stop()
 print("Application Closed.")
+
 #plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 
