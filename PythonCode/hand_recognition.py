@@ -7,6 +7,8 @@ import math as mt
 import sys
 import openpose as op
 
+#pull test
+
 def get_label(index, hand, results):
     for idx, classification in enumerate(results.multi_handedness):
         if classification.classification[0].index == index:
