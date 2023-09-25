@@ -5,7 +5,6 @@ import uuid
 import os
 import math as mt
 import sys
-import openpose as op
 
 #pull test
 

@@ -76,7 +76,7 @@ def HandPlaneOrientation(points):
         [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
         ])   
 
-    Roz = np.matrix([   # Rotación 90º en z
+    Roz = np.matrix([   # Rotación -90º en z
         [mt.cos(-mt.radians(angle)), -mt.sin(-mt.radians(angle)), 0],
         [mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
         [0, 0, 1]
@@ -499,7 +499,6 @@ while True:
         #images = cv2.putText(images, f"theta: {theta}", org, font, fontScale, color, thickness, cv2.LINE_AA)
 
         '''Generates the rotation for all the points'''
-        #Rotamos para alinear y 180º en Y para pasar al sistema de coordenadas de la imagen
         Pivote = (Hombro_izq_3D[0],Hombro_izq_3D[2]) #Rotamos sobre el hombro izquierdo
         
         rotar_hombro_izq = (Hombro_izq_3D[0],Hombro_izq_3D[2]) #Coordenadas x y z de los puntos a rotar
@@ -557,8 +556,8 @@ while True:
             except:
                 RH_factor_izq = 1
 
-            '''Cambiamos del sistema de coordenadas de la imagen al sistema de coordenadas del brazo izquierdo para lo que necesitamos una rotación de 90º en X
-            y una de -90º en Z, por lo que: x_base_izq = z_imagen; y_base_izq = (-) x_imagen; z_base_izq = (-) y_imagen'''
+            '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del brazo izquierdo: 
+            x_base_izq = z_human; y_base_izq = (-) x_human; z_base_izq = (-) y_human'''
 
             Robot_Hombro_izq = [0,0,0] 
             Translation = [(Robot_Hombro_izq[0] + Hombro_izq_Final[2]),(Robot_Hombro_izq[1] + Hombro_izq_Final[0]),(Robot_Hombro_izq[2] + Hombro_izq_Final[1])]  
@@ -659,8 +658,8 @@ while True:
             except:
                 RHfactor_der = 1
         
-            '''Cambiamos del sistema de coordenadas de la imagen al sistema de coordenadas del brazo izquierdo para lo que necesitamos una rotación de 90º en X
-            y una de -90º en Z, por lo que: x_base_izq = z_imagen; y_base_izq = x_imagen; z_base_izq = y_imagen'''
+            '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del brazo izquierdo: 
+            x_base_izq = (-) z_human; y_base_izq = x_human; z_base_izq = (-) y_human'''
 
             Robot_Hombro_der = [0,0,0] 
             Translation = [(Robot_Hombro_der[0] + Hombro_der_Final[2]),(Robot_Hombro_der[1] + Hombro_der_Final[0]),(Robot_Hombro_der[2] + Hombro_der_Final[1])]
