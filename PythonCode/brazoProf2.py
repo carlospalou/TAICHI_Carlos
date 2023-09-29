@@ -1,8 +1,6 @@
 ''' Code created by Adrian Prados and Blanca Lopez, 
 researchers from RoboticsLab, University Carlos III of Madrid, Spain'''
 
-
-#!/home/nox/anaconda3/envs/ikfastenv/bin/ python3
 import sys
 import pyrealsense2 as rs
 import mediapipe as mp
@@ -53,14 +51,18 @@ def calculate_angle(a,b,c):
         
     return angle 
 
-def HandPlaneOrientation(points):
+def HandPlaneOrientation(points, hand):
     ''' Obtain the zvector of the final efector as the ortogonal vector of the hand plane'''
-    normal_vector = np.cross(points[0] - points[2], points[0] - points[1]) # Producto de vectores para obtener la normal
+    if hand == 0: # Mano izquierda
+        normal_vector = np.cross(points[0] - points[2], points[0] - points[1]) # Producto de vectores para obtener la normal
+        x_vec = (points[2]-points[1])
+    if hand == 1: #Mano derecha
+        normal_vector = np.cross(points[0] - points[1], points[0] - points[2])
+        x_vec = (points[1]-points[2])
     normal_vector /= np.linalg.norm(normal_vector) # Lo divide por su norma para volverlo unitario
-    x_vec = (points[2]-points[1])
     x_vec /= np.linalg.norm(x_vec)
     y_vec = np.cross(normal_vector,x_vec)
-    y_vec /= np.linalg.norm(y_vec)
+    y_vec /= np.linalg.norm(y_vec) 
 
     ''' The -1 correct the orientation of the hand plane respect the image orientation'''
     Mat = np.matrix([
@@ -81,7 +83,6 @@ def HandPlaneOrientation(points):
         [mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
         [0, 0, 1]
         ])
-
 
     Rotacional = np.matmul(Rox,Roz)
     Rotacional = np.linalg.inv(Rotacional)
@@ -557,7 +558,7 @@ while True:
                 RH_factor_izq = 1
 
             '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del brazo izquierdo: 
-            x_base_izq = z_human; y_base_izq = (-) x_human; z_base_izq = (-) y_human'''
+            x_base_izq = z_human; y_base_izq = x_human; z_base_izq = y_human'''
 
             Robot_Hombro_izq = [0,0,0] 
             Translation = [(Robot_Hombro_izq[0] + Hombro_izq_Final[2]),(Robot_Hombro_izq[1] + Hombro_izq_Final[0]),(Robot_Hombro_izq[2] + Hombro_izq_Final[1])]  
@@ -567,7 +568,9 @@ while True:
             Robot_Muneca_izq = [(Translation[0] - Muneca_izq_Final[2])*RH_factor_izq,(Translation[1] - Muneca_izq_Final[0])*RH_factor_izq,(Translation[2] - Muneca_izq_Final[1])*RH_factor_izq]
 
             ''' Detection of left hand orientation'''
-            if results.multi_handedness[0].classification[0].label == 'Left':    
+            if results.multi_handedness[0].classification[0].label == 'Left':
+
+                hand = 0    
 
                 for handLms in results.multi_hand_landmarks:
 
@@ -610,7 +613,7 @@ while True:
                     Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
                 
                 Points_izq = np.asarray([Cero_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
-                MatRot_izq = HandPlaneOrientation(Points_izq)
+                MatRot_izq = HandPlaneOrientation(Points_izq, hand)
             
             
                 ''' Generate the values for the UR3 robot'''
@@ -658,8 +661,8 @@ while True:
             except:
                 RHfactor_der = 1
         
-            '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del brazo izquierdo: 
-            x_base_izq = (-) z_human; y_base_izq = x_human; z_base_izq = (-) y_human'''
+            '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del brazo derecho 
+            x_base_izq = z_human; y_base_izq = x_human; z_base_izq = y_human'''
 
             Robot_Hombro_der = [0,0,0] 
             Translation = [(Robot_Hombro_der[0] + Hombro_der_Final[2]),(Robot_Hombro_der[1] + Hombro_der_Final[0]),(Robot_Hombro_der[2] + Hombro_der_Final[1])]
@@ -670,7 +673,9 @@ while True:
             
             
             ''' Detection of right hand orientation'''
-            if results.multi_handedness[0].classification[0].label == 'Right':   
+            if results.multi_handedness[0].classification[0].label == 'Right':
+
+                hand = 1;   
 
                 for handLms in results.multi_hand_landmarks:
                     
@@ -713,7 +718,7 @@ while True:
                     Diecisiete_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Diecisiete_der_Z)
                 
                 Points_der = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
-                MatRot_der = HandPlaneOrientation(Points_der)
+                MatRot_der = HandPlaneOrientation(Points_der, hand)
 
                 ''' Generate the values for the UR3 robot'''
                 Punto_der = [Robot_Muneca_der[0],Robot_Muneca_der[1],Robot_Muneca_der[2],1]
