@@ -1,13 +1,11 @@
 ''' Code created by Adrian Prados and Blanca Lopez, 
 researchers from RoboticsLab, University Carlos III of Madrid, Spain'''
 
-import sys
 import pyrealsense2 as rs
 import mediapipe as mp
 import cv2
 import numpy as np
 import datetime as dt
-import time
 import math as mt
 from scipy.spatial.transform import Rotation
 import pandas as pd
@@ -52,23 +50,35 @@ def calculate_angle(a,b,c):
     return angle 
 
 def HandPlaneOrientation(points, hand):
-    ''' Obtain the zvector of the final efector as the ortogonal vector of the hand plane'''
+    ''' Obtain the Z vector of the final efector as the ortogonal vector of the hand plane'''
     if hand == 0: # Mano izquierda
-        normal_vector = np.cross(points[0] - points[2], points[0] - points[1]) # Producto de vectores para obtener la normal
-        x_vec = (points[2]-points[1])
+        normal_vectors = []
+        for hand_landmarks in points:
+            normal_vector = np.cross(hand_landmarks[0] - hand_landmarks[2], hand_landmarks[0] - hand_landmarks[1]) # Producto de vectores para obtener la normal
+            normal_vectors.append(normal_vector)
+        z_vec = (normal_vectors[0] + normal_vectors[1] + normal_vectors[2] + normal_vectors[3])/4
+        x_vec = (points[3][2]-points[3][1])
+
     if hand == 1: #Mano derecha
-        normal_vector = np.cross(points[0] - points[1], points[0] - points[2])
-        x_vec = (points[1]-points[2])
-    normal_vector /= np.linalg.norm(normal_vector) # Lo divide por su norma para volverlo unitario
+        normal_vectors = []
+        for hand_landmarks in points:
+            normal_vector = np.cross(hand_landmarks[0] - hand_landmarks[1], hand_landmarks[0] - hand_landmarks[2]) # Producto de vectores para obtener la normal
+            normal_vectors.append(normal_vector)
+        z_vec = (normal_vectors[0] + normal_vectors[1] + normal_vectors[2] + normal_vectors[3])/4
+        x_vec = (points[3][1]-points[3][2])
+
+    z_vec /= np.linalg.norm(z_vec) # Lo divide por su norma para volverlo unitario
     x_vec /= np.linalg.norm(x_vec)
-    y_vec = np.cross(normal_vector,x_vec)
-    y_vec /= np.linalg.norm(y_vec) 
+    y_vec = np.cross(z_vec,x_vec)
+    y_vec /= np.linalg.norm(y_vec)
+
+    #print(z_vec) 
 
     ''' The -1 correct the orientation of the hand plane respect the image orientation'''
     Mat = np.matrix([
         [-1*x_vec[0],x_vec[1],x_vec[2]],
         [-1*y_vec[0],y_vec[1],y_vec[2]],
-        [normal_vector[0],-1*normal_vector[1],-1*normal_vector[2]]
+        [z_vec[0],-1*z_vec[1],-1*z_vec[2]]
          ])
 
     angle = 90
@@ -405,7 +415,6 @@ while True:
 
         for num, hand in enumerate(results.multi_hand_landmarks): 
             mpDraw.draw_landmarks(images, hand, mpHands.HAND_CONNECTIONS)
-
             if get_label(num, hand, results): 
                 text, coord = get_label(num, hand, results) 
                 cv2.putText(images, text, coord, font, 1, (255, 0, 0), 2, cv2.LINE_AA)
@@ -488,6 +497,7 @@ while True:
         Codo_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[codo_der_X,codo_der_Y],codo_der_Z)
         Muneca_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[muneca_der_X,muneca_der_Y],muneca_der_Z)
         
+
         ''' Calculate the rotation of the left shoulder to orientate correctly to the camera'''
         theta = mt.atan2((Hombro_der_3D[2]-Hombro_izq_3D[2]),(Hombro_der_3D[0]-Hombro_izq_3D[0])) #Ángulo entre los hombros en el plano definido por XZ
         theta = 180 - mt.degrees(theta) 
@@ -498,6 +508,7 @@ while True:
         else:
             theta = theta
         #images = cv2.putText(images, f"theta: {theta}", org, font, fontScale, color, thickness, cv2.LINE_AA)
+
 
         '''Generates the rotation for all the points'''
         Pivote = (Hombro_izq_3D[0],Hombro_izq_3D[2]) #Rotamos sobre el hombro izquierdo
@@ -548,16 +559,19 @@ while True:
         
         Brazo_Human_der = Human_Humero_der + Human_Cubito_der
         
-        
+    
+        if Brazo_Human_izq and Brazo_Human_der <= 0.8:
 
-        if Brazo_Human_izq <=0.8:
             try:
                 #Obtain Robot-Human factor for arm length
                 RH_factor_izq = (0.5/Brazo_Human_izq)
+                RHfactor_der = (0.5/Brazo_Human_der)
+
             except:
                 RH_factor_izq = 1
+                RHfactor_der = 1
 
-            '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del brazo izquierdo: 
+            '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del robot: 
             x_base_izq = z_human; y_base_izq = x_human; z_base_izq = y_human'''
 
             Robot_Hombro_izq = [0,0,0] 
@@ -567,57 +581,116 @@ while True:
             Robot_Codo_izq = [(Translation[0] - Codo_izq_Final[2])*RH_factor_izq,(Translation[1] - Codo_izq_Final[0])*RH_factor_izq,(Translation[2] - Codo_izq_Final[1])*RH_factor_izq]
             Robot_Muneca_izq = [(Translation[0] - Muneca_izq_Final[2])*RH_factor_izq,(Translation[1] - Muneca_izq_Final[0])*RH_factor_izq,(Translation[2] - Muneca_izq_Final[1])*RH_factor_izq]
 
-            ''' Detection of left hand orientation'''
-            if results.multi_handedness[0].classification[0].label == 'Left':
+            
+            Robot_Hombro_der = [0,0,0] # El origen para el brazo derecho es el hombro derecho
+            Translation = [(Robot_Hombro_der[0] + Hombro_der_Final[2]),(Robot_Hombro_der[1] + Hombro_der_Final[0]),(Robot_Hombro_der[2] + Hombro_der_Final[1])]
 
-                hand = 0    
+            Robot_Hombro_der = [(Translation[0] - Hombro_der_Final[2]),(Translation[1] - Hombro_der_Final[0]),(Translation[2]- Hombro_der_Final[1])]
+            Robot_Codo_der = [(Translation[0] - Codo_der_Final[2])*RHfactor_der,(Translation[1] - Codo_der_Final[0])*RHfactor_der,(Translation[2] - Codo_der_Final[1])*RHfactor_der]
+            Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RHfactor_der,(Translation[1] - Muneca_der_Final[0])*RHfactor_der,(Translation[2] - Muneca_der_Final[1])*RHfactor_der]
 
-                for handLms in results.multi_hand_landmarks:
+        
+            '''Obtenemos los puntos de '''
+            landmarks_izquierda = []
+            landmarks_derecha = []
 
-                    Cero_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.WRIST]
-                    Cinco_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.INDEX_FINGER_MCP]
-                    Diecisiete_izq = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.PINKY_MCP]
-                    
-                    Cero_izq_X = int(Cero_izq.x*len(depth_image_flipped[0]))
-                    Cero_izq_Y = int(Cero_izq.y*len(depth_image_flipped))
-                    if Cero_izq_X >= len(depth_image_flipped[0]):
-                        Cero_izq_X = len(depth_image_flipped[0]) - 1
+            for hand_num, hand_landmarks in enumerate(results.multi_hand_landmarks):
+                landmarks = []
 
-                    if Cero_izq_Y>= len(depth_image_flipped):
-                        Cero_izq_Y = len(depth_image_flipped) - 1
+                for landmark in hand_landmarks.landmark:
+                    landmarks.append(landmark)
 
-                    Cinco_izq_X = int(Cinco_izq.x*len(depth_image_flipped[0]))
-                    Cinco_izq_Y = int(Cinco_izq.y*len(depth_image_flipped))
-                    if Cinco_izq_X >= len(depth_image_flipped[0]):
-                        Cinco_izq_X = len(depth_image_flipped[0]) - 1
+                if results.multi_handedness[num].classification[0].label == 'Left':
+                    landmarks_izquierda.append(landmarks)
+                else:
+                    landmarks_derecha.append(landmarks)
 
-                    if Cinco_izq_Y>= len(depth_image_flipped):
-                        Cinco_izq_Y = len(depth_image_flipped) - 1
+            if landmarks_izquierda:
+                Cero_izq = landmarks_izquierda[0][0]  
+                Uno_izq = landmarks_izquierda[0][1]   
+                Dos_izq = landmarks_izquierda[0][2]   
+                Cinco_izq = landmarks_izquierda[0][5]  
+                Nueve_izq = landmarks_izquierda[0][9]  
+                Trece_izq = landmarks_izquierda[0][13]  
+                Diecisiete_izq = landmarks_izquierda[0][17]  
 
-                    Diecisiete_izq_X = int(Diecisiete_izq.x*len(depth_image_flipped[0]))
-                    Diecisiete_izq_Y = int(Diecisiete_izq.y*len(depth_image_flipped))
-                    if Diecisiete_izq_X >= len(depth_image_flipped[0]):
-                        Diecisiete_izq_X = len(depth_image_flipped[0]) - 1
-
-                    if Diecisiete_izq_Y>= len(depth_image_flipped):
-                        Diecisiete_izq_Y = len(depth_image_flipped) - 1
-
-                    ''' Z values for the left hand (depth)'''
-                    Cero_izq_Z = depth_image_flipped[Cero_izq_Y,Cero_izq_X] * depth_scale 
-                    Cinco_izq_Z = depth_image_flipped[Cinco_izq_Y,Cinco_izq_X] * depth_scale 
-                    Diecisiete_izq_Z = depth_image_flipped[Diecisiete_izq_Y,Diecisiete_izq_X] * depth_scale 
-
-                    '''Values of the different studied points in meters'''
-                    Cero_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_izq_X,Cero_izq_Y],Cero_izq_Z)
-                    Cinco_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_izq_X,Cinco_izq_Y],Cinco_izq_Z)
-                    Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
+                ''' X,Y values for the left hand '''        
+                Cero_izq_X = int(Cero_izq.x*len(depth_image_flipped[0]))
+                Cero_izq_Y = int(Cero_izq.y*len(depth_image_flipped))
+                if Cero_izq_X >= len(depth_image_flipped[0]):
+                    Cero_izq_X = len(depth_image_flipped[0]) - 1
+                if Cero_izq_Y>= len(depth_image_flipped):
+                    Cero_izq_Y = len(depth_image_flipped) - 1
                 
-                Points_izq = np.asarray([Cero_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
-                MatRot_izq = HandPlaneOrientation(Points_izq, hand)
-            
-            
-                ''' Generate the values for the UR3 robot'''
-                #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
+                Uno_izq_X = int(Uno_izq.x*len(depth_image_flipped[0]))
+                Uno_izq_Y = int(Uno_izq.y*len(depth_image_flipped))
+                if Uno_izq_X >= len(depth_image_flipped[0]):
+                    Uno_izq_X = len(depth_image_flipped[0]) - 1
+                if Uno_izq_Y>= len(depth_image_flipped):
+                    Uno_izq_Y = len(depth_image_flipped) - 1
+
+                Dos_izq_X = int(Dos_izq.x*len(depth_image_flipped[0]))
+                Dos_izq_Y = int(Dos_izq.y*len(depth_image_flipped))
+                if Dos_izq_X >= len(depth_image_flipped[0]):
+                    Dos_izq_X = len(depth_image_flipped[0]) - 1
+                if Dos_izq_Y>= len(depth_image_flipped):
+                    Dos_izq_Y = len(depth_image_flipped) - 1
+
+                Cinco_izq_X = int(Cinco_izq.x*len(depth_image_flipped[0]))
+                Cinco_izq_Y = int(Cinco_izq.y*len(depth_image_flipped))
+                if Cinco_izq_X >= len(depth_image_flipped[0]):
+                    Cinco_izq_X = len(depth_image_flipped[0]) - 1
+                if Cinco_izq_Y>= len(depth_image_flipped):
+                    Cinco_izq_Y = len(depth_image_flipped) - 1
+                
+                Nueve_izq_X = int(Nueve_izq.x*len(depth_image_flipped[0]))
+                Nueve_izq_Y = int(Nueve_izq.y*len(depth_image_flipped))
+                if Nueve_izq_X >= len(depth_image_flipped[0]):
+                    Nueve_izq_X = len(depth_image_flipped[0]) - 1
+                if Nueve_izq_Y>= len(depth_image_flipped):
+                    Nueve_izq_Y = len(depth_image_flipped) - 1
+
+                Trece_izq_X = int(Trece_izq.x*len(depth_image_flipped[0]))
+                Trece_izq_Y = int(Trece_izq.y*len(depth_image_flipped))
+                if Trece_izq_X >= len(depth_image_flipped[0]):
+                    Trece_izq_X = len(depth_image_flipped[0]) - 1
+                if Trece_izq_Y>= len(depth_image_flipped):
+                    Trece_izq_Y = len(depth_image_flipped) - 1
+
+                Diecisiete_izq_X = int(Diecisiete_izq.x*len(depth_image_flipped[0]))
+                Diecisiete_izq_Y = int(Diecisiete_izq.y*len(depth_image_flipped))
+                if Diecisiete_izq_X >= len(depth_image_flipped[0]):
+                    Diecisiete_izq_X = len(depth_image_flipped[0]) - 1
+                if Diecisiete_izq_Y>= len(depth_image_flipped):
+                    Diecisiete_izq_Y = len(depth_image_flipped) - 1
+
+                ''' Z values for the left hand (depth)'''
+                Cero_izq_Z = depth_image_flipped[Cero_izq_Y,Cero_izq_X] * depth_scale
+                Uno_izq_Z = depth_image_flipped[Uno_izq_Y,Uno_izq_X] * depth_scale 
+                Dos_izq_Z = depth_image_flipped[Dos_izq_Y,Dos_izq_X] * depth_scale 
+                Cinco_izq_Z = depth_image_flipped[Cinco_izq_Y,Cinco_izq_X] * depth_scale
+                Nueve_izq_Z = depth_image_flipped[Nueve_izq_Y,Nueve_izq_X] * depth_scale
+                Trece_izq_Z = depth_image_flipped[Trece_izq_Y,Trece_izq_X] * depth_scale 
+                Diecisiete_izq_Z = depth_image_flipped[Diecisiete_izq_Y,Diecisiete_izq_X] * depth_scale 
+
+                '''3D position of the left hand points in meters'''
+                Cero_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_izq_X,Cero_izq_Y],Cero_izq_Z)
+                Uno_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Uno_izq_X,Uno_izq_Y],Uno_izq_Z)
+                Dos_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Dos_izq_X,Dos_izq_Y],Dos_izq_Z)
+                Cinco_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_izq_X,Cinco_izq_Y],Cinco_izq_Z)
+                Nueve_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Nueve_izq_X,Nueve_izq_Y],Nueve_izq_Z)
+                Trece_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Trece_izq_X,Trece_izq_Y],Trece_izq_Z)
+                Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
+
+                '''Left hand orientation''' 
+                Points_izq_1 = np.asarray([Cero_izq_3D, Cinco_izq_3D, Trece_izq_3D])
+                Points_izq_2 = np.asarray([Cero_izq_3D, Dos_izq_3D, Nueve_izq_3D])
+                Points_izq_3 = np.asarray([Uno_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
+                Points_izq_4 = np.asarray([Uno_izq_3D, Nueve_izq_3D, Diecisiete_izq_3D])
+                Points_izq = [Points_izq_1, Points_izq_2, Points_izq_3, Points_izq_4]
+                MatRot_izq = HandPlaneOrientation(Points_izq, 0) # 0 mano izquierda
+
+                ''' Generate the left values for the UR3 robot'''
                 Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1]
                 PuntoCodo_izq = np.array([[Robot_Codo_izq[0]],[Robot_Codo_izq[1]],[Robot_Codo_izq[2]]])
                 
@@ -648,79 +721,101 @@ while True:
                     datos_izq = datos_izq + 1
 
                 except ValueError:
-                    print("Mathematical inconsistence")
-                
-        else:
-            print("Incorrect value")
-        
-        
-        if Brazo_Human_der <=0.8:
-            try:
-                #Obtain Robot-Human factor for arm length'''
-                RHfactor_der = (0.5/Brazo_Human_der)
-            except:
-                RHfactor_der = 1
-        
-            '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del brazo derecho 
-            x_base_izq = z_human; y_base_izq = x_human; z_base_izq = y_human'''
-
-            Robot_Hombro_der = [0,0,0] 
-            Translation = [(Robot_Hombro_der[0] + Hombro_der_Final[2]),(Robot_Hombro_der[1] + Hombro_der_Final[0]),(Robot_Hombro_der[2] + Hombro_der_Final[1])]
-
-            Robot_Hombro_der = [(Translation[0] - Hombro_der_Final[2]),(Translation[1] - Hombro_der_Final[0]),(Translation[2]- Hombro_der_Final[1])]
-            Robot_Codo_der = [(Translation[0] - Codo_der_Final[2])*RHfactor_der,(Translation[1] - Codo_der_Final[0])*RHfactor_der,(Translation[2] - Codo_der_Final[1])*RHfactor_der]
-            Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RHfactor_der,(Translation[1] - Muneca_der_Final[0])*RHfactor_der,(Translation[2] - Muneca_der_Final[1])*RHfactor_der]
+                        print("Mathematical inconsistence")
             
-            
-            ''' Detection of right hand orientation'''
-            if results.multi_handedness[0].classification[0].label == 'Right':
+            else:
+                print("No left hand data")
 
-                hand = 1;   
 
-                for handLms in results.multi_hand_landmarks:
-                    
-                    Cero_der = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.WRIST]
-                    Cinco_der = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.INDEX_FINGER_MCP]
-                    Diecisiete_der = results.multi_hand_landmarks[0].landmark[mpHands.HandLandmark.PINKY_MCP]
-                    
-                    Cero_der_X = int(Cero_der.x*len(depth_image_flipped[0]))
-                    Cero_der_Y = int(Cero_der.y*len(depth_image_flipped))
-                    if Cero_der_X >= len(depth_image_flipped[0]):
-                        Cero_der_X = len(depth_image_flipped[0]) - 1
+            if landmarks_derecha:
+                Cero_der = landmarks_derecha[0][0]  
+                Uno_der = landmarks_derecha[0][1]   
+                Dos_der = landmarks_derecha[0][2]   
+                Cinco_der = landmarks_derecha[0][5]  
+                Nueve_der = landmarks_derecha[0][9]  
+                Trece_der = landmarks_derecha[0][13]  
+                Diecisiete_der = landmarks_derecha[0][17]  
 
-                    if Cero_der_Y>= len(depth_image_flipped):
-                        Cero_der_Y = len(depth_image_flipped) - 1
+                ''' X,Y values for the right hand '''
+                Cero_der_X = int(Cero_der.x*len(depth_image_flipped[0]))
+                Cero_der_Y = int(Cero_der.y*len(depth_image_flipped))
+                if Cero_der_X >= len(depth_image_flipped[0]):
+                    Cero_der_X = len(depth_image_flipped[0]) - 1
+                if Cero_der_Y>= len(depth_image_flipped):
+                    Cero_der_Y = len(depth_image_flipped) - 1
 
-                    Cinco_der_X = int(Cinco_der.x*len(depth_image_flipped[0]))
-                    Cinco_der_Y = int(Cinco_der.y*len(depth_image_flipped))
-                    if Cinco_der_X >= len(depth_image_flipped[0]):
-                        Cinco_der_X = len(depth_image_flipped[0]) - 1
+                Uno_der_X = int(Uno_der.x*len(depth_image_flipped[0]))
+                Uno_der_Y = int(Uno_der.y*len(depth_image_flipped))
+                if Uno_der_X >= len(depth_image_flipped[0]):
+                    Uno_der_X = len(depth_image_flipped[0]) - 1
+                if Uno_der_Y>= len(depth_image_flipped):
+                    Uno_der_Y = len(depth_image_flipped) - 1
 
-                    if Cinco_der_Y>= len(depth_image_flipped):
-                        Cinco_der_Y = len(depth_image_flipped) - 1
+                Dos_der_X = int(Dos_der.x*len(depth_image_flipped[0]))
+                Dos_der_Y = int(Dos_der.y*len(depth_image_flipped))
+                if Dos_der_X >= len(depth_image_flipped[0]):
+                    Dos_der_X = len(depth_image_flipped[0]) - 1
+                if Dos_der_Y>= len(depth_image_flipped):
+                    Dos_der_Y = len(depth_image_flipped) - 1
 
-                    Diecisiete_der_X = int(Diecisiete_der.x*len(depth_image_flipped[0]))
-                    Diecisiete_der_Y = int(Diecisiete_der.y*len(depth_image_flipped))
-                    if Diecisiete_der_X >= len(depth_image_flipped[0]):
-                        Diecisiete_der_X = len(depth_image_flipped[0]) - 1
+                Cinco_der_X = int(Cinco_der.x*len(depth_image_flipped[0]))
+                Cinco_der_Y = int(Cinco_der.y*len(depth_image_flipped))
+                if Cinco_der_X >= len(depth_image_flipped[0]):
+                    Cinco_der_X = len(depth_image_flipped[0]) - 1
+                if Cinco_der_Y>= len(depth_image_flipped):
+                    Cinco_der_Y = len(depth_image_flipped) - 1
 
-                    if Diecisiete_der_Y>= len(depth_image_flipped):
-                        Diecisiete_der_Y = len(depth_image_flipped) - 1
+                Nueve_der_X = int(Nueve_der.x*len(depth_image_flipped[0]))
+                Nueve_der_Y = int(Nueve_der.y*len(depth_image_flipped))
+                if Nueve_der_X >= len(depth_image_flipped[0]):
+                    Nueve_der_X = len(depth_image_flipped[0]) - 1
+                if Nueve_der_Y>= len(depth_image_flipped):
+                    Nueve_der_Y = len(depth_image_flipped) - 1
 
-                    ''' Z values for the left hand (depth)'''
-                    Cero_der_Z = depth_image_flipped[Cero_der_Y,Cero_der_X] * depth_scale 
-                    Cinco_der_Z = depth_image_flipped[Cinco_der_Y,Cinco_der_X] * depth_scale 
-                    Diecisiete_der_Z = depth_image_flipped[Diecisiete_der_Y,Diecisiete_der_X] * depth_scale
+                Trece_der_X = int(Trece_der.x*len(depth_image_flipped[0]))
+                Trece_der_Y = int(Trece_der.y*len(depth_image_flipped))
+                if Trece_der_X >= len(depth_image_flipped[0]):
+                    Trece_der_X = len(depth_image_flipped[0]) - 1
+                if Trece_der_Y>= len(depth_image_flipped):
+                    Trece_der_Y = len(depth_image_flipped) - 1
 
-                    '''Values of the different studied points in meters'''
-                    Cero_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_der_X,Cero_der_Y],Cero_der_Z)
-                    Cinco_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_der_X,Cinco_der_Y],Cinco_der_Z)
-                    Diecisiete_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Diecisiete_der_Z)
-                
-                Points_der = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
-                MatRot_der = HandPlaneOrientation(Points_der, hand)
+                Diecisiete_der_X = int(Diecisiete_der.x*len(depth_image_flipped[0]))
+                Diecisiete_der_Y = int(Diecisiete_der.y*len(depth_image_flipped))
+                if Diecisiete_der_X >= len(depth_image_flipped[0]):
+                    Diecisiete_der_X = len(depth_image_flipped[0]) - 1
+                if Diecisiete_der_Y>= len(depth_image_flipped):
+                    Diecisiete_der_Y = len(depth_image_flipped) - 1
 
-                ''' Generate the values for the UR3 robot'''
+                ''' Z values for the right hand (depth)'''
+                Cero_der_Z = depth_image_flipped[Cero_der_Y,Cero_der_X] * depth_scale
+                Uno_der_Z = depth_image_flipped[Uno_der_Y,Uno_der_X] * depth_scale 
+                Dos_der_Z = depth_image_flipped[Dos_der_Y,Dos_der_X] * depth_scale  
+                Cinco_der_Z = depth_image_flipped[Cinco_der_Y,Cinco_der_X] * depth_scale
+                Nueve_der_Z = depth_image_flipped[Nueve_der_Y,Nueve_der_X] * depth_scale
+                Trece_der_Z = depth_image_flipped[Trece_der_Y,Trece_der_X] * depth_scale
+                Diecisiete_der_Z = depth_image_flipped[Diecisiete_der_Y,Diecisiete_der_X] * depth_scale
+
+                '''3D position of the lright hand points in meters'''
+                Cero_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_der_X,Cero_der_Y],Cero_der_Z)
+                Uno_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Uno_der_X,Uno_der_Y],Uno_der_Z)
+                Dos_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Dos_der_X,Dos_der_Y],Dos_der_Z)
+                Cinco_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_der_X,Cinco_der_Y],Cinco_der_Z)
+                Nueve_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Nueve_der_X,Nueve_der_Y],Nueve_der_Z)
+                Trece_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Trece_der_X,Trece_der_Y],Trece_der_Z)
+                Diecisiete_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Diecisiete_der_Z)
+
+                print(Diecisiete_der_3D)
+
+                '''Right hand orientation''' 
+                Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
+                Points_der_2 = np.asarray([Cero_der_3D, Dos_der_3D, Nueve_der_3D])
+                Points_der_3 = np.asarray([Uno_der_3D, Cinco_der_3D, Diecisiete_der_3D])
+                Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
+                Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
+                MatRot_der = HandPlaneOrientation(Points_der, 1) # 1 mano derecha
+
+
+                ''' Generate the right values for the UR3 robot'''
                 Punto_der = [Robot_Muneca_der[0],Robot_Muneca_der[1],Robot_Muneca_der[2],1]
                 PuntoCodo_der= np.array([[Robot_Codo_der[0]],[Robot_Codo_der[1]],[Robot_Codo_der[2]]])
                 
@@ -752,9 +847,12 @@ while True:
 
                 except ValueError:
                     print("Mathematical inconsistence")
-                
+
+            else:
+                print("No right hand data")
+
         else:
-            print("Incorrect value")
+            print("Incorrect arm value")
 
     else:
         print("No person in front of the camera")
@@ -773,25 +871,22 @@ while True:
         print("User pressed break key for SN:",device)
         break
 
+
 '''Filter orientation using a Gaussian Filter'''
-print(DATOSPRE_IZQ)
-print(DATOSPRE_DER)
+#print(DATOSPRE_IZQ)
+#print(DATOSPRE_DER)
 
 L1,L2,L3,L4,L5,L6,L7,L8,L9 = smooth_rotations(DATOSPRE_IZQ,1)
-R1,R2,R3,R4,R5,R6,R7,R8,R9 = smooth_rotations(DATOSPRE_DER,1) # Filter values [0.5, 1]
+R1,R2,R3,R4,R5,R6,R7,R8,R9 = smooth_rotations(DATOSPRE_DER,1) 
 
 X_End_Izq,Y_End_Izq,Z_End_Izq = smooth_endefector(DATOSPRE_IZQ,1)
 X_End_Der,Y_End_Der,Z_End_Der = smooth_endefector(DATOSPRE_DER,1)
 X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq = smooth_elbow(CORCODOPRE_IZQ,1)
 X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der = smooth_elbow(CORCODOPRE_DER,1)
-#plot_smoothed_Elbow(CORCODOPRE,XElbow,YElbow,ZElbow)
 
 print("**********************")
-#print(R1)
-#plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 
 '''Save data filtered'''
-#print(DATOSPRE[0][0,0])
 for n in range(len(L1)):
     
     MatrizFiltered = np.array([
@@ -822,24 +917,24 @@ for n in range(len(X_Elbow_Der)):
     CORCODO_DER.append(PuntoCodoFilterDer)
 
 
-print("--------------------------")
-print(DATOS_IZQ)
-print(DATOS_DER)
-print("--------------------------")
+#print("--------------------------")
+#print(DATOS_IZQ)
+#print(DATOS_DER)
+#print("--------------------------")
 
 
 ''' Save all the values in .csv'''
 variable = np.asarray(DATOS_IZQ).shape
-print("DATOS IZQ: ",variable[0])
+#print("DATOS IZQ: ",variable[0])
 DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1))
-print(np.asarray(DATOS_IZQ).shape)
+#print(np.asarray(DATOS_IZQ).shape)
 Modelo_izq = pd.DataFrame(DATOS_IZQ)
 Modelo_izq.to_csv('/home/carlos/TAICHI/HumanData/DatosBrazoIzquierdo.csv',index=False, header=False) 
 
 variable2 = np.asarray(DATOS_DER).shape
-print("DATOS DER: ",variable2[0])
+#print("DATOS DER: ",variable2[0])
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
-print(np.asarray(DATOS_DER).shape)
+#print(np.asarray(DATOS_DER).shape)
 Modelo_der = pd.DataFrame(DATOS_DER)
 Modelo_der.to_csv('/home/carlos/TAICHI/HumanData/DatosBrazoDerecho.csv',index=False, header=False) 
 
@@ -860,9 +955,7 @@ ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
 ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI/HumanData/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
-print("Application Closing")
+#print("Application Closing")
 pipeline.stop()
-print("Application Closed.")
-
-#plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+#print("Application Closed.")
 

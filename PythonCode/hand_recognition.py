@@ -6,7 +6,6 @@ import os
 import math as mt
 import sys
 
-#pull test
 
 def get_label(index, hand, results):
     for idx, classification in enumerate(results.multi_handedness):
@@ -56,6 +55,12 @@ while cap.isOpened():
             if get_label(num, hand, results): #Check if we get something back
                 text, coord = get_label(num, hand, results) #Save the outputs of the function in variables
                 cv2.putText(image, text, coord, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+    if results.multi_handedness[0].classification[0].label == 'Left':
+        print('Left')
+    
+    if results.multi_handedness[0].classification[0].label == 'Left':
+        print('Right')
 
     cv2.imshow('Hand tracking', image)
 
