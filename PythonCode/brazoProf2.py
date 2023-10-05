@@ -16,7 +16,7 @@ from scipy.ndimage import gaussian_filter
 ################### Functions ##################################
 
 def get_label(index, hand, results):
-    for idx, classification in enumerate(results.multi_handedness):
+    for classification in results.multi_handedness:
         if classification.classification[0].index == index:
             label = classification.classification[0].label
             text = '{}'.format(label)
@@ -72,7 +72,7 @@ def HandPlaneOrientation(points, hand):
     y_vec = np.cross(z_vec,x_vec)
     y_vec /= np.linalg.norm(y_vec)
 
-    #print(z_vec) 
+    #print(z_vec, hand) 
 
     ''' The -1 correct the orientation of the hand plane respect the image orientation'''
     Mat = np.matrix([
@@ -560,7 +560,7 @@ while True:
         Brazo_Human_der = Human_Humero_der + Human_Cubito_der
         
     
-        if Brazo_Human_izq and Brazo_Human_der <= 0.8:
+        if Brazo_Human_izq or Brazo_Human_der <= 0.8:
 
             try:
                 #Obtain Robot-Human factor for arm length
@@ -590,22 +590,23 @@ while True:
             Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RHfactor_der,(Translation[1] - Muneca_der_Final[0])*RHfactor_der,(Translation[2] - Muneca_der_Final[1])*RHfactor_der]
 
         
-            '''Obtenemos los puntos de '''
+            '''Obtenemos los puntos de ambas manos '''
             landmarks_izquierda = []
             landmarks_derecha = []
-
+            
             for hand_num, hand_landmarks in enumerate(results.multi_hand_landmarks):
                 landmarks = []
 
                 for landmark in hand_landmarks.landmark:
                     landmarks.append(landmark)
 
-                if results.multi_handedness[num].classification[0].label == 'Left':
+                if results.multi_handedness[hand_num].classification[0].label == 'Left':
                     landmarks_izquierda.append(landmarks)
                 else:
                     landmarks_derecha.append(landmarks)
 
             if landmarks_izquierda:
+                
                 Cero_izq = landmarks_izquierda[0][0]  
                 Uno_izq = landmarks_izquierda[0][1]   
                 Dos_izq = landmarks_izquierda[0][2]   
@@ -689,6 +690,8 @@ while True:
                 Points_izq_4 = np.asarray([Uno_izq_3D, Nueve_izq_3D, Diecisiete_izq_3D])
                 Points_izq = [Points_izq_1, Points_izq_2, Points_izq_3, Points_izq_4]
                 MatRot_izq = HandPlaneOrientation(Points_izq, 0) # 0 mano izquierda
+
+                print(MatRot_izq)
 
                 ''' Generate the left values for the UR3 robot'''
                 Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1]
@@ -804,7 +807,7 @@ while True:
                 Trece_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Trece_der_X,Trece_der_Y],Trece_der_Z)
                 Diecisiete_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Diecisiete_der_Z)
 
-                print(Diecisiete_der_3D)
+                #print(Diecisiete_der_3D)
 
                 '''Right hand orientation''' 
                 Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
@@ -813,6 +816,8 @@ while True:
                 Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
                 Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
                 MatRot_der = HandPlaneOrientation(Points_der, 1) # 1 mano derecha
+
+                print(MatRot_der)
 
 
                 ''' Generate the right values for the UR3 robot'''
@@ -929,33 +934,37 @@ variable = np.asarray(DATOS_IZQ).shape
 DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1))
 #print(np.asarray(DATOS_IZQ).shape)
 Modelo_izq = pd.DataFrame(DATOS_IZQ)
-Modelo_izq.to_csv('/home/carlos/TAICHI/HumanData/DatosBrazoIzquierdo.csv',index=False, header=False) 
+Modelo_izq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoIzquierdo.csv',index=False, header=False) 
 
 variable2 = np.asarray(DATOS_DER).shape
 #print("DATOS DER: ",variable2[0])
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
 #print(np.asarray(DATOS_DER).shape)
 Modelo_der = pd.DataFrame(DATOS_DER)
-Modelo_der.to_csv('/home/carlos/TAICHI/HumanData/DatosBrazoDerecho.csv',index=False, header=False) 
+Modelo_der.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoDerecho.csv',index=False, header=False) 
 
 variable3 = np.asarray(CORCODO_IZQ).shape
 CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1))
 ModeloCodo_izq = pd.DataFrame(CORCODO_IZQ)
-ModeloCodo_izq.to_csv('/home/carlos/TAICHI/HumanData/CodoIzquierdo.csv',index=False, header=False)
+ModeloCodo_izq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoIzquierdo.csv',index=False, header=False)
 
 variable4 = np.asarray(CORCODO_DER).shape
 CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
 ModeloCodo_der = pd.DataFrame(CORCODO_DER)
-ModeloCodo_der.to_csv('/home/carlos/TAICHI/HumanData/CodoDerecho.csv',index=False, header=False)
+ModeloCodo_der.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoDerecho.csv',index=False, header=False)
 
 ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
-ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI/HumanData/EfectorFinalIzquierdo.csv',index=False, header=False)
+ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/EfectorFinalIzquierdo.csv',index=False, header=False)
 
 ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
-ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI/HumanData/EfectorFinalDerecho.csv',index=False, header=False)
+ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
-#print("Application Closing")
 pipeline.stop()
-#print("Application Closed.")
+print("Application Closed.")
+
+#plot_smoothed_Elbow(CORCODOPRE_IZQ,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq)
+#plot_smoothed_Elbow(CORCODOPRE_DER,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
+#plot_smoothed_rotations(DATOSPRE_IZQ,L1,L2,L3,L4,L5,L6,L7,L8,L9)
+#plot_smoothed_rotations(DATOSPRE_DER,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 
