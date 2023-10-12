@@ -15,16 +15,6 @@ from scipy.ndimage import gaussian_filter
 
 ################### Functions ##################################
 
-def get_label(index, hand, results):
-    for classification in results.multi_handedness:
-        if classification.classification[0].index == index:
-            label = classification.classification[0].label
-            text = '{}'.format(label)
-            coords = tuple(np.multiply(
-                np.array((hand.landmark[mpHands.HandLandmark.WRIST].x, hand.landmark[mpHands.HandLandmark.WRIST].y)), [640, 480]).astype(int))
-
-            return text, coords
-
 def rotateY(origin, point, angle):
     ''' Function defined to rotate one point respect to naother point'''
     #Angle in radians
@@ -413,12 +403,6 @@ while True:
         ''' Draw body lines and save body references'''
         mpDraw.draw_landmarks(images, cuerpo.pose_landmarks, mpPose.POSE_CONNECTIONS)
 
-        for num, hand in enumerate(results.multi_hand_landmarks): 
-            mpDraw.draw_landmarks(images, hand, mpHands.HAND_CONNECTIONS)
-            if get_label(num, hand, results): 
-                text, coord = get_label(num, hand, results) 
-                cv2.putText(images, text, coord, font, 1, (255, 0, 0), 2, cv2.LINE_AA)
-
         hombro_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
         codo_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_ELBOW]
         muneca_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
@@ -589,12 +573,13 @@ while True:
             Robot_Codo_der = [(Translation[0] - Codo_der_Final[2])*RHfactor_der,(Translation[1] - Codo_der_Final[0])*RHfactor_der,(Translation[2] - Codo_der_Final[1])*RHfactor_der]
             Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RHfactor_der,(Translation[1] - Muneca_der_Final[0])*RHfactor_der,(Translation[2] - Muneca_der_Final[1])*RHfactor_der]
 
-        
+
             '''Obtenemos los puntos de ambas manos '''
             landmarks_izquierda = []
             landmarks_derecha = []
             
             for hand_num, hand_landmarks in enumerate(results.multi_hand_landmarks):
+                mpDraw.draw_landmarks(images, hand_landmarks, mpHands.HAND_CONNECTIONS)
                 landmarks = []
 
                 for landmark in hand_landmarks.landmark:
@@ -605,7 +590,10 @@ while True:
                 else:
                     landmarks_derecha.append(landmarks)
 
+
             if landmarks_izquierda:
+
+                cv2.putText(images, "Left", (int(landmarks_izquierda[0][0].x*len(depth_image_flipped[0])), int(landmarks_izquierda[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
                 
                 Cero_izq = landmarks_izquierda[0][0]  
                 Uno_izq = landmarks_izquierda[0][1]   
@@ -731,6 +719,9 @@ while True:
 
 
             if landmarks_derecha:
+
+                cv2.putText(images, "Right", (int(landmarks_derecha[0][0].x*len(depth_image_flipped[0])), int(landmarks_derecha[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
                 Cero_der = landmarks_derecha[0][0]  
                 Uno_der = landmarks_derecha[0][1]   
                 Dos_der = landmarks_derecha[0][2]   
@@ -873,7 +864,7 @@ while True:
     key = cv2.waitKey(1)
     # Press esc or 'q' to close the image window
     if key & 0xFF == ord('q') or key == 27:
-        print("User pressed break key for SN:",device)
+        #print("User pressed break key for SN:",device)
         break
 
 
