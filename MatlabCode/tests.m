@@ -1,11 +1,12 @@
 clear;clc;close all;
 
-ur10 = loadrobot("universalUR10");
+robot = loadrobot("quanserQArm",DataFormat="row");
+figure(Visible="on")
+show(robot);
+xlim([-0.5 0.5])
+ylim([-0.5 0.5])
+zlim([-0.25 0.75])
+hold on
 
-% for i = 1:4
-%     subplot(2,2,i)
-%     config = randomConfiguration(ur10);
-%     show(ur10,config);
-% end
-
-interactiveGUI = interactiveRigidBodyTree(ur10);
+ss = manipulatorStateSpace(robot);
+sv = manipulatorCollisionBodyValidator(ss,SkippedSelfCollisions="parent");

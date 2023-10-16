@@ -10,10 +10,10 @@ function [D] = distanceMetric(CodoH,W2,W1,W3,CodoRobot,Hombro,gola)
 %     D = 10*C_W1+300*C_CR+C_HR; % That cost function must be adapted for your problem 
 
     %% Option 2
-    CodoRobotrot = rotx(45)*CodoRobot';
+    CodoRobotRot = rotx(45)*CodoRobot';
     punto = (gola./norm(gola)).*(norm(gola)/2);
 
-    DD = norm(CodoRobotrot-punto);
+    DD = norm(CodoRobotRot-punto);
     
     D = 300*DD;
 end

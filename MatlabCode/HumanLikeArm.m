@@ -13,7 +13,7 @@ robotModel = loadrobot("universalUR3","DataFormat","column");
 T1 = [1 0 0 0.07;0 0.7071 0.7071 0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
 setFixedTransform(robotModel.Bodies{1,1}.Joint,T1);
 ss = manipulatorStateSpace(robotModel);
-sv = manipulatorCollisionBodyValidator(ss);
+sv = manipulatorCollisionBodyValidator(ss,SkippedSelfCollisions="parent");
 sv.ValidationDistance = 0.1;
 sv.IgnoreSelfCollision = true;
 
@@ -36,7 +36,7 @@ body2.Pose = matrizRot;
 body3.Pose = matrizRot;
 body4.Pose = matrizRot;
 env = {body1 body2 body3 body4};
-sv.Environment = env;
+% sv.Environment = env;
 % To visualized the environment
 % figure(11)
 % show(robotModel,"Collisions","off");
@@ -49,8 +49,8 @@ sv.Environment = env;
 %% Inverse kinematics solver
 %% Read the files
 
-path = '/home/nox/BrazoCamara/ur_ikfast/DatosHumano/Prueba1/DatosBrazoHumano.csv';
-path2 = '/home/nox/BrazoCamara/ur_ikfast/DatosHumano/Prueba1/CodoHumano.csv';
+path = '/home/carlos/DatosBrazoHumano.csv';
+path2 = '/home/carlos/CodoHumano.csv';
 
 matrixRead = readmatrix(path);
 CodoRead = readmatrix(path2);
@@ -119,7 +119,7 @@ for i=1:4:iter
             for jj = 1:1:6
                 configSoln(jj).JointPosition =res(ii,jj);
             end
-            % Check collision using the exact collision model
+            Check collision using the exact collision model
             goalConfig = [configSoln(1).JointPosition configSoln(2).JointPosition configSoln(3).JointPosition configSoln(4).JointPosition configSoln(5).JointPosition configSoln(6).JointPosition];
             [validState,~] = checkCollision(robotModel,goalConfig',env,"IgnoreSelfCollision","off","Exhaustive","on","SkippedSelfCollisions","parent");
             if ~any(validState)
