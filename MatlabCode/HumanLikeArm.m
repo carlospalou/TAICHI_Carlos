@@ -36,16 +36,16 @@ body2.Pose = matrizRot;
 body3.Pose = matrizRot;
 body4.Pose = matrizRot;
 env = {body1 body2 body3 body4};
-% sv.Environment = env;
-% To visualized the environment
-% figure(11)
-% show(robotModel,"Collisions","off");
-% hold on
-% show(env{1});
-% show(env{2});
-% show(env{3});
-% show(env{4});
-% hold off
+sv.Environment = env;
+%To visualized the environment
+figure(11)
+show(robotModel,"Collisions","off");
+hold on
+show(env{1});
+show(env{2});
+show(env{3});
+show(env{4});
+hold off
 %% Inverse kinematics solver
 %% Read the files
 
@@ -99,7 +99,7 @@ for i=1:4:iter
     % Elbow matrix
     VectorCodo = [CodoOrganizado(k,1), CodoOrganizado(k,2),CodoOrganizado(k,3)];
     VecCODO = [VecCODO;VectorCodo];
-    X_RAGoal = [matrix2(1,4) matrix2(2,4) matrix2(3,4)];
+    X_RAGoal = [matrix2(1,4) matrix2(2,4) matrix2(3,4)]; %ultima columna posicion, 
     gola = [gola;[matrixRead(i,4) matrixRead(i+1,4) matrixRead(i+2,4)]];
     gola2 = [gola2;X_RAGoal];
     Rot_mat = [matrix2(1,1) matrix2(1,2) matrix2(1,3);

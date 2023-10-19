@@ -109,7 +109,7 @@ MatrixCodoDer = zeros(4,4);
 k=0;
 
 for i=1:4:iter_izq 
-    k = k+1;
+    k = k+1; % Numero de iteraciones
     DistDif = 10000000;
     DistDigOG = DistDif;
     iteration = 0;
@@ -133,8 +133,8 @@ for i=1:4:iter_izq
     matrix = MatrixIzq; % Para IK_UR
 
     X_RA_Goal_Izq = [MatrixIzq2(1,4) MatrixIzq2(2,4) MatrixIzq2(3,4)]; % Posicion del EF obtenida de los datos de la camara
-    Goal_Izq = [Goal_Izq; [MatrixIzqRead(i,4) MatrixIzqRead(i+1,4) MatrixIzqRead(i+2,4)]]; % Va almacenando las orientaciones
-    Goal2_Izq = [Goal2_Izq;X_RA_Goal_Izq]; % Va almacenando las posiciones
+    Goal_Izq = [Goal_Izq; [MatrixIzqRead(i,4) MatrixIzqRead(i+1,4) MatrixIzqRead(i+2,4)]];
+    Goal2_Izq = [Goal2_Izq;X_RA_Goal_Izq]; 
     RotMatIzq = [MatrixIzq2(1,1) MatrixIzq2(1,2) MatrixIzq2(1,3); % Matriz de rotacion del EF en funcion de los datos de la camara
         MatrixIzq2(2,1) MatrixIzq2(2,2) MatrixIzq2(2,3);
         MatrixIzq2(3,1) MatrixIzq2(3,2) MatrixIzq2(3,3)];
@@ -161,7 +161,7 @@ for i=1:4:iter_izq
             if ~any(validState)
 
                 % End efector for the specific configuration
-                EfectorFinalIzq = getTransform(robot,configSol,'tool0','base_link'); % Orientacion del EF en funcion de la configuracion
+                EfectorFinalIzq = getTransform(robot,configSol,'tool0','base_link'); % Orientacion del EF respecto a la base en funcion de la configuracion
                 X_RA_Izq = [EfectorFinalIzq(1,4) EfectorFinalIzq(2,4) EfectorFinalIzq(3,4)]; % Posicion del EF en funcion de la configuracion
                 Rot_EF_Izq =[EfectorFinalIzq(1,1) EfectorFinalIzq(1,2) EfectorFinalIzq(1,3); % Matriz de rotacion en funcion de la configuracion
                     EfectorFinalIzq(2,1) EfectorFinalIzq(2,2) EfectorFinalIzq(2,3);
@@ -203,7 +203,7 @@ for i=1:4:iter_izq
                 else
                     ErroWristIzq = variationWrist(configSol(4).JointPosition,WristOldIzq); % Calcula el error como la diferencia entre el nuevo valor de la muñeca y el antiguo
                 end
-                DistFinalIzq = real(W_rax*d_RAx_izq + W_rao*d_RAo_izq + W_A*MDistanciaIzq + ErroWrist);
+                DistFinalIzq = real(W_rax*d_RAx_izq + W_rao*d_RAo_izq + W_A*MDistanciaIzq + ErroWristIzq);
                 
                 CodoRobotRotIzq = rotx(45)*S_codo_izq';
                 WristRobotRotIzq= rotx(45)*S_wrist1_izq';
@@ -211,15 +211,15 @@ for i=1:4:iter_izq
                 % Check if it is finished
                 if d_RAx_izq <= 0.05 && d_RAo_izq <= 0.16 && ~(CodoRobotRotIzq(2)<-0.1 && WristRobotRotIzq(2)>CodoRobotRotIzq(2)) && DistFinalIzq < DistDif && configSol(1).JointPosition >= HombroLim(1) && configSol(1).JointPosition <= HombroLim(2) && configSol(2).JointPosition >= HombroLim2(1) && configSol(2).JointPosition <= HombroLim2(2)
                     DistDif = DistFinalIzq;
-                    MejorConfig = [configSol(1).JointPosition configSol(2).JointPosition configSol(3).JointPosition configSol(4).JointPosition configSol(5).JointPosition configSol(6).JointPosition];
+                    MejorConfigIzq = [configSol(1).JointPosition configSol(2).JointPosition configSol(3).JointPosition configSol(4).JointPosition configSol(5).JointPosition configSol(6).JointPosition];
                     mejor_ii = ii;
                 end
             end
         end
         if DistDif ~= DistDigOG
-            WristOldIzq = MejorConfig(1,4);
+            WristOldIzq = MejorConfigIzq(1,4);
             MEJORES_IZQ = [MEJORES_IZQ;mejor_ii];
-            ConfigFinalIzq = [ConfigFinalIzq;MejorConfig];
+            ConfigFinalIzq = [ConfigFinalIzq;MejorConfigIzq];
             ROTMAT_IZQ = [ROTMAT_IZQ;RotMatIzq];
 
         else
@@ -332,29 +332,29 @@ for i=1:4:iter_der
                 else
                     ErroWristDer = variationWrist(configSol(4).JointPosition,WristOldDer); % Calcula el error como la diferencia entre el nuevo valor de la muñeca y el antiguo
                 end
-                DistFinalDer = real(W_rax*d_RAx_der + W_rao*d_RAo_der + W_A*MDistanciaDer + ErroWrist);
+                DistFinalDer = real(W_rax*d_RAx_der + W_rao*d_RAo_der + W_A*MDistanciaDer + ErroWristDer);
                 
-                CodoRobotRotIzq = rotx(45)*S_codo_der';
-                WristRobotRotIzq= rotx(45)*S_wrist1_der';
+                CodoRobotRotDer = rotx(45)*S_codo_der';
+                WristRobotRotDer= rotx(45)*S_wrist1_der';
 
                 % Check if it is finished
-                if d_RAx_der <= 0.05 && d_RAo_der <= 0.16 && ~(CodoRobotRotIzq(2)<-0.1 && WristRobotRotIzq(2)>CodoRobotRotIzq(2)) && DistFinalDer < DistDif && configSol(1).JointPosition >= HombroLim(1) && configSol(1).JointPosition <= HombroLim(2) && configSol(2).JointPosition >= HombroLim2(1) && configSol(2).JointPosition <= HombroLim2(2)
+                if d_RAx_der <= 0.05 && d_RAo_der <= 0.16 && ~(CodoRobotRotDer(2)<-0.1 && WristRobotRotDer(2)>CodoRobotRotDer(2)) && DistFinalDer < DistDif && configSol(1).JointPosition >= HombroLim(1) && configSol(1).JointPosition <= HombroLim(2) && configSol(2).JointPosition >= HombroLim2(1) && configSol(2).JointPosition <= HombroLim2(2)
                     DistDif = DistFinalDer;
-                    MejorConfig = [configSol(1).JointPosition configSol(2).JointPosition configSol(3).JointPosition configSol(4).JointPosition configSol(5).JointPosition configSol(6).JointPosition];
+                    MejorConfigDer = [configSol(1).JointPosition configSol(2).JointPosition configSol(3).JointPosition configSol(4).JointPosition configSol(5).JointPosition configSol(6).JointPosition];
                     mejor_ii = ii;
                 end
             end
         end
         if DistDif ~= DistDigOG
-            WristOldIzq = MejorConfig(1,4);
-            MEJORES_IZQ = [MEJORES_IZQ;mejor_ii];
-            ConfigFinalIzq = [ConfigFinalIzq;MejorConfig];
-            ROTMAT_IZQ = [ROTMAT_IZQ;RotMatDer];
+            WristOldDer = MejorConfig(1,4);
+            MEJORES_DER = [MEJORES_DER;mejor_ii];
+            ConfigFinalDer = [ConfigFinalDer;MejorConfigDer];
+            ROTMAT_DER = [ROTMAT_DER;RotMatDer];
 
         else
             disp('Not valid configuration found')
             WorstIzq = k;
-            PEORES_IZQ = [PEORES_IZQ;WorstIzq];
+            PEORES_DER = [PEORES_DER;WorstDer];
             dif
         end
 
@@ -365,27 +365,38 @@ for i=1:4:iter_der
 end
 
 % Filter the incorrect data and correct the position values
-Goal_Der(PEORES_IZQ,:) = [];
-Goal2_Der(PEORES_IZQ,:) = [];
+Goal_Izq(PEORES_IZQ,:) = [];
+Goal2_Izq(PEORES_IZQ,:) = [];
+Goal_Izq =[Goal_Izq(:,1)+0.07,Goal_Izq(:,2)+0.13,Goal_Izq(:,3)+1.15];
+Goal_Der(PEORES_DER,:) = [];
+Goal2_Der(PEORES_DER,:) = [];
 Goal_Der =[Goal_Der(:,1)+0.07,Goal_Der(:,2)+0.13,Goal_Der(:,3)+1.15];
 
 
 %% Plot the movements of the robotics arm respect the human elbow and wrist
 
 robot = loadrobot("universalUR3");
-T1 = [1 0 0 0.07;0 0.7071 0.7071 0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
 setFixedTransform(robot.Bodies{1,1}.Joint,T1);
 configuraciones = robot.homeConfiguration;
+
+DISTANCIAS_IZQ = [];
+DISTANCIAS_DER = [];
+END_IZQ = [];
+END_DER = [];
+ROTEND_IZQ = [];
+ROTEND_DER = [];
+X_IZQ = [];
+X_DER = [];
+Y_IZQ = [];
+Y_DER = [];
+Z_IZQ = [];
+Z_DER = [];
+
 k=0;
-DISTANCIAS = [];
-END = [];
-ROTEND = [];
-X =[];
-Y = [];
-Z = [];
 
 for i=1:1:length(ConfigFinalIzq)
-    k= k+1
+
+    k = k+1
     configuraciones(1).JointPosition = ConfigFinalIzq(i,1);
     configuraciones(2).JointPosition = ConfigFinalIzq(i,2);
     configuraciones(3).JointPosition = ConfigFinalIzq(i,3);
@@ -394,29 +405,84 @@ for i=1:1:length(ConfigFinalIzq)
     configuraciones(6).JointPosition = ConfigFinalIzq(i,6);
     zoom(gca,'on');
     show(robot,configuraciones,"Collisions","off");
-    CodoR = getTransform(robot,configuraciones,'forearm_link','base_link');
-    CODRob_IZQ = [CODRob_IZQ;CodoR(1,4) CodoR(2,4) CodoR(3,4)];
+    CodoR_Izq = getTransform(robot,configuraciones,'forearm_link','base_link');
+    CODRob_IZQ = [CODRob_IZQ;CodoR_Izq(1,4) CodoR_Izq(2,4) CodoR_Izq(3,4)];
     camzoom(1.7);
     hold on
-    show(env1{1});
-    show(env1{2});
-    show(env1{3});
-    show(env1{4});
+
+    show(env{1});
+    show(env{2});
+    show(env{3});
+    show(env{4});
     hold on
+
+    plot3(VEC_CODO_IZQ(k,1)+0.07,VEC_CODO_IZQ(k,2)+0.13,VEC_CODO_IZQ(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
+    plot3(Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+    hold on
+
+    PuntoEndIzq = getTransform(robot,configuraciones,'tool0','base_link');
+    PuntoIzq = [Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3)];
+    END_IZQ = [END_IZQ;PuntoEndIzq(1,4),PuntoEndIzq(2,4),PuntoEndIzq(3,4)];
+    ROTEND_IZQ = [ROTEND_IZQ;PuntoEndIzq(1,1),PuntoEndIzq(1,2),PuntoEndIzq(1,3);PuntoEndIzq(2,1),PuntoEndIzq(2,2),PuntoEndIzq(2,3);PuntoEndIzq(3,1),PuntoEndIzq(3,2),PuntoEndIzq(3,3)];
+
+    pause(0.001);
+    hold off
+end
+
+k=0;
+
+for i=1:1:length(ConfigFinalDer)
+
+    k = k+1
+    configuraciones(1).JointPosition = ConfigFinalDer(i,1);
+    configuraciones(2).JointPosition = ConfigFinalDer(i,2);
+    configuraciones(3).JointPosition = ConfigFinalDer(i,3);
+    configuraciones(4).JointPosition = ConfigFinalDer(i,4);
+    configuraciones(5).JointPosition = ConfigFinalDer(i,5);
+    configuraciones(6).JointPosition = ConfigFinalDer(i,6);
+    zoom(gca,'on');
+    show(robot,configuraciones,"Collisions","off");
+    CodoR_Der = getTransform(robot,configuraciones,'forearm_link','base_link');
+    CODRob_DER = [CODRob_DER;CodoR_Der(1,4) CodoR_Der(2,4) CodoR_Der(3,4)];
+    camzoom(1.7);
+    hold on
+
+    show(env{1});
+    show(env{2});
+    show(env{3});
+    show(env{4});
+    hold on
+
     plot3(VEC_CODO_DER(k,1)+0.07,VEC_CODO_DER(k,2)+0.13,VEC_CODO_DER(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
     plot3(Goal_Der(k,1),Goal_Der(k,2),Goal_Der(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
     hold on
-    PuntoEnd = getTransform(robot,configuraciones,'tool0','base_link');
-    Punto = [Goal_Der(k,1),Goal_Der(k,2),Goal_Der(k,3)];
-    END = [END;PuntoEnd(1,4),PuntoEnd(2,4),PuntoEnd(3,4)];
-    ROTEND = [ROTEND;PuntoEnd(1,1),PuntoEnd(1,2),PuntoEnd(1,3);PuntoEnd(2,1),PuntoEnd(2,2),PuntoEnd(2,3);PuntoEnd(3,1),PuntoEnd(3,2),PuntoEnd(3,3)];
+
+    PuntoEndDer = getTransform(robot,configuraciones,'tool0','base_link');
+    PuntoDer = [Goal_Der(k,1),Goal_Der(k,2),Goal_Der(k,3)];
+    END_DER = [END_DER;PuntoEndDer(1,4),PuntoEndDer(2,4),PuntoEndDer(3,4)];
+    ROTEND_DER = [ROTEND_DER;PuntoEndDer(1,1),PuntoEndDer(1,2),PuntoEndDer(1,3);PuntoEndDer(2,1),PuntoEndDer(2,2),PuntoEndDer(2,3);PuntoEndDer(3,1),PuntoEndDer(3,2),PuntoEndDer(3,3)];
 
     pause(0.001);
     hold off
 end
 
 
+
 %% Plot in 3D (smoothed to visualized it better)
+
+figure;
+plot3(Goal2_Izq(:,1),Goal2_Izq(:,2),Goal2_Izq(:,3),'Color','g');
+hold on
+xlabel('X (m)')
+ylabel('Y (m)')
+zlabel('Z (m)')
+plot3(END_IZQ(:,1),END_IZQ(:,2),END_IZQ(:,3),'Color','b');
+plot3(Goal2_Izq(1,1),Goal2_Izq(1,2),Goal2_Izq(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
+plot3(Goal2_Izq(length(Goal2_Izq),1),Goal2_Izq(length(Goal2_Izq),2),Goal2_Izq(length(Goal2_Izq),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
+[t,s]=title("Comparision between data acquired");
+t.FontSize = 16;
+legend('Robot data','Human data','Initial point','Final point')
+hold off
 
 figure;
 plot3(Goal2_Der(:,1),Goal2_Der(:,2),Goal2_Der(:,3),'Color','g');
@@ -424,7 +490,7 @@ hold on
 xlabel('X (m)')
 ylabel('Y (m)')
 zlabel('Z (m)')
-plot3(END(:,1),END(:,2),END(:,3),'Color','b');
+plot3(END_DER(:,1),END_DER(:,2),END_DER(:,3),'Color','b');
 plot3(Goal2_Der(1,1),Goal2_Der(1,2),Goal2_Der(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
 plot3(Goal2_Der(length(Goal2_Der),1),Goal2_Der(length(Goal2_Der),2),Goal2_Der(length(Goal2_Der),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
 [t,s]=title("Comparision between data acquired");
@@ -433,5 +499,3 @@ legend('Robot data','Human data','Initial point','Final point')
 hold off
 
 %% Plot the error values of the end efector to compare
-
-PlotError
