@@ -6,6 +6,7 @@ import os
 import math as mt
 import sys
 
+#git test
 
 def get_label(index, hand, results):
     for idx, classification in enumerate(results.multi_handedness):
