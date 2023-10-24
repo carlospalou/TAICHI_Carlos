@@ -679,7 +679,7 @@ while True:
                 Points_izq = [Points_izq_1, Points_izq_2, Points_izq_3, Points_izq_4]
                 MatRot_izq = HandPlaneOrientation(Points_izq, 0) # 0 mano izquierda
 
-                print(MatRot_izq)
+                #print(MatRot_izq)
 
                 ''' Generate the left values for the UR3 robot'''
                 Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1]
@@ -808,7 +808,7 @@ while True:
                 Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
                 MatRot_der = HandPlaneOrientation(Points_der, 1) # 1 mano derecha
 
-                print(MatRot_der)
+                #print(MatRot_der)
 
 
                 ''' Generate the right values for the UR3 robot'''
@@ -920,29 +920,30 @@ for n in range(len(X_Elbow_Der)):
 
 
 ''' Save all the values in .csv'''
-variable = np.asarray(DATOS_IZQ).shape
-#print("DATOS IZQ: ",variable[0])
-DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1))
+# DATOS_IZQ es una lista donde cada elemento es una matriz de transformación homogénea 4x4
+variable = np.asarray(DATOS_IZQ).shape # Convierte DATOS_IZQ en un array de numpy, .shape da las dimensiones del array
+#print("DATOS IZQ: ",variable) # Número de matrices de transformacion homogeneas
+DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1)) # Reorganiza el array anterior en uno de 4 columnas con las matrices una debajo de otra
 #print(np.asarray(DATOS_IZQ).shape)
-Modelo_izq = pd.DataFrame(DATOS_IZQ)
-Modelo_izq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoIzquierdo.csv',index=False, header=False) 
+ModeloIzq = pd.DataFrame(DATOS_IZQ) # Crea una tabla o data frame de Pandas
+ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
 
 variable2 = np.asarray(DATOS_DER).shape
-#print("DATOS DER: ",variable2[0])
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
-#print(np.asarray(DATOS_DER).shape)
-Modelo_der = pd.DataFrame(DATOS_DER)
-Modelo_der.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoDerecho.csv',index=False, header=False) 
+ModeloDer = pd.DataFrame(DATOS_DER)
+ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoDerecho.csv',index=False, header=False) 
 
-variable3 = np.asarray(CORCODO_IZQ).shape
-CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1))
-ModeloCodo_izq = pd.DataFrame(CORCODO_IZQ)
-ModeloCodo_izq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoIzquierdo.csv',index=False, header=False)
+# CORCODO_IZQ es una lista donde cada elemento es una matriz 3x1 con las coordenadas del codo izquierdo
+variable3 = np.asarray(CORCODO_IZQ).shape 
+CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1)) # Reorganiza el array anterior en uno de una única columna y tres veces el número de filas que de puntos
+#print(CORCODO_IZQ)
+ModeloCodoIzq = pd.DataFrame(CORCODO_IZQ)
+ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoIzquierdo.csv',index=False, header=False)
 
 variable4 = np.asarray(CORCODO_DER).shape
 CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
-ModeloCodo_der = pd.DataFrame(CORCODO_DER)
-ModeloCodo_der.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoDerecho.csv',index=False, header=False)
+ModeloCodoDer = pd.DataFrame(CORCODO_DER)
+ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoDerecho.csv',index=False, header=False)
 
 ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
 ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba1/EfectorFinalIzquierdo.csv',index=False, header=False)

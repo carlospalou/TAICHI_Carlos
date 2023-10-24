@@ -8,9 +8,9 @@ try
 catch
 
 end
+
 % Convert to numpy.array values for python
 npM = py.numpy.array(M(:).');
 res = double(pyrunfile("UR3_Inverse_Kinematics.py","Sol",M = npM,name = name,launcher = launcher));
-
 
 RES = [RES;res];
