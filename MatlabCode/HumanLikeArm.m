@@ -119,7 +119,7 @@ for i=1:4:iter
             for jj = 1:1:6
                 configSoln(jj).JointPosition =res(ii,jj);
             end
-            Check collision using the exact collision model
+            %Check collision using the exact collision model
             goalConfig = [configSoln(1).JointPosition configSoln(2).JointPosition configSoln(3).JointPosition configSoln(4).JointPosition configSoln(5).JointPosition configSoln(6).JointPosition];
             [validState,~] = checkCollision(robotModel,goalConfig',env,"IgnoreSelfCollision","off","Exhaustive","on","SkippedSelfCollisions","parent");
             if ~any(validState)
