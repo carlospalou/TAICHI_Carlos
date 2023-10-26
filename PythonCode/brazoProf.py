@@ -265,6 +265,7 @@ fontScale = .5
 color = (0,0,0)
 thickness = 2
 
+
 # ====== DATA ======
 global DATOS, CORCODO, EFECTOR, DATOSPRE, CORCODOPRE
 DATOS = []
@@ -274,7 +275,6 @@ CORCODOPRE = []
 EFECTOR = []
 datos = 0
 h = 0
-
 # ====== Realsense ======
 ''' Detect the camera RealSense D435i and activate it'''
 realsense_ctx = rs.context()
@@ -439,6 +439,7 @@ while True:
         #print(f"Muneca: {MunecaBueno}")
         #print(f"HombroIzquierda : {HombroBueno}")
         #print(f"HombroDerecha : {Hombro2Bueno}")
+
         
         ''' Calculate the rotation of the left shoulder to orientate correctly to the camera the body'''
         theta = mt.atan2((HombroBueno[2]-Hombro2Bueno[2]),(HombroBueno[0]-Hombro2Bueno[0]))
@@ -459,17 +460,18 @@ while True:
         rotadoC = rotateY(Pivote,RotCodo,mt.radians(theta))
         rotadoM = rotateY(Pivote,RotMuneca,mt.radians(theta))
 
+        #print(f"MunecaBuena2 : ", {rotadoH[1],Hombro2Bueno[2]})
+
         HombroFinal= [rotadoH[0],HombroBueno[1],rotadoH[1]]
         CodoFinal= [rotadoC[0],CodoBueno[1],rotadoC[1]]
         MunecaFinal= [rotadoM[0],MunecaBueno[1],rotadoM[1]]
-        
-        #print("MunecaFinal : ",MunecaFinal)
+        #print("MunecaBuena : ",MunecaFinal)
         #print("HombroFinal : ",HombroFinal)
         #print("CodoFinal : ",CodoFinal)
 
         ''' Reduction factor for the human arm'''
         HumanHumero = abs(mt.dist(HombroFinal,CodoFinal))
-        #print(HumanHumero)
+        print(HumanHumero)
         if HumanHumero < 0.26 or HumanHumero > 0.28:
             CodoFinal = project_point_on_line(HombroFinal,CodoFinal,0.27)
 
@@ -497,7 +499,7 @@ while True:
 
 
             robotHombro = [(Translation[0] - HombroFinal[2]),(Translation[1] - HombroFinal[0]),(Translation[2]- HombroFinal[1])]
-            robotCodo = [(Translation[0] - CodoFinal[2])*factorRH,(Translation[1] - CodoFinal[0])*factorRH,(Translation[2] - CodoFinal[1])*factorRH]
+            robotCodo = [(Translation[0] - CodoFinal[2]  )*factorRH,(Translation[1] - CodoFinal[0])*factorRH,(Translation[2] - CodoFinal[1])*factorRH]
             robotMuneca = [(Translation[0] - MunecaFinal[2])*factorRH,(Translation[1] - MunecaFinal[0])*factorRH,(Translation[2] - MunecaFinal[1])*factorRH]
             
             #print(Translation)
@@ -558,7 +560,6 @@ while True:
             ''' Generate the values for the UR3 robot'''
             #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
             punto = [robotMuneca[0],robotMuneca[1],robotMuneca[2],1]
-            print(punto)
             puntoCodo = np.array([[robotCodo[0]],[robotCodo[1]],[robotCodo[2]]])
             #print(punto)
             try:
@@ -578,7 +579,7 @@ while True:
                             h = 0
                             DATOSPRE.append(MatrizBrazo)
                             CORCODOPRE.append(puntoCodo)
-                            #print("Valor de codo",puntoCodo[0,0])
+                            print("Valor de codo",puntoCodo[0,0])
                             r = Rotation.from_matrix(MatRot)
                             angles = r.as_euler("xyz",degrees=False)
                             efectorFinal = [MatrizBrazo[0,3],MatrizBrazo[1,3],MatrizBrazo[2,3],angles[0],angles[1],angles[2]]
@@ -649,15 +650,15 @@ variable = np.asarray(DATOS).shape
 DATOS= np.reshape(DATOS, (variable[0]*4, -1))
 #print(np.asarray(DATOS).shape)
 Modelo = pd.DataFrame(DATOS)
-Modelo.to_csv('/home/carlos/TAICHI/HumanData/DatosBrazoHumano.csv',index=False, header=False) # use the path to wherever you want to save the files
+Modelo.to_csv('/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/DatosBrazoHumano.csv',index=False, header=False) # use the path to wherever you want to save the files
 
 variable2 = np.asarray(CORCODO).shape
 CORCODO= np.reshape(CORCODO, (variable2[0]*3, -1))
 ModeloCodo = pd.DataFrame(CORCODO)
-ModeloCodo.to_csv('/home/carlos/TAICHI/HumanData/CodoHumano.csv',index=False, header=False)
+ModeloCodo.to_csv('/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/CodoHumano.csv',index=False, header=False)
 
 ModeloEfectorFinal = pd.DataFrame(EFECTOR)
-ModeloEfectorFinal.to_csv('/home/carlos/TAICHI/HumanData/EfectorFinal.csv',index=False, header=False)
+ModeloEfectorFinal.to_csv('/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/EfectorFinal.csv',index=False, header=False)
 
 ''' Close the application'''
 print("Application Closing")

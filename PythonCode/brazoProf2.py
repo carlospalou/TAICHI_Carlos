@@ -703,7 +703,7 @@ while True:
 
                 ''' Generate the left values for the UR3 robot'''
                 Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1] # Coge el punto de la muñeca del cuerpo para la matriz de transformacion homogenea
-                print(Punto_izq)
+                #print(Punto_izq)
                 PuntoCodo_izq = np.array([[Robot_Codo_izq[0]],[Robot_Codo_izq[1]],[Robot_Codo_izq[2]]])
                 
                 try:

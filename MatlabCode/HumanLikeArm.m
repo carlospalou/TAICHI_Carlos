@@ -46,8 +46,13 @@ sv.Environment = env;
 % show(env{3});
 % show(env{4});
 % hold off
+
+
 %% Inverse kinematics solver
 %% Read the files
+
+%path = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/DatosBrazoHumano.csv';
+%path2 = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/CodoHumano.csv';
 
 path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoIzquierdo.csv';
 path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoIzquierdo.csv';
