@@ -42,20 +42,30 @@ def calculate_angle(a,b,c):
 def HandPlaneOrientation(points, hand):
     ''' Obtain the Z vector of the final efector as the ortogonal vector of the hand plane'''
     if hand == 0: # Mano izquierda
-        normal_vectors = []
-        for hand_landmarks in points:
-            normal_vector = np.cross(hand_landmarks[0] - hand_landmarks[2], hand_landmarks[0] - hand_landmarks[1]) # Producto de vectores para obtener la normal
+
+        '''normal_vectors = []
+        for i in range(len(points)):
+            normal_vector = np.cross(points[i][0] - points[i][2], points[i][0] - points[i][1]) # Producto de vectores para obtener la normal
             normal_vectors.append(normal_vector)
-        z_vec = (normal_vectors[0] + normal_vectors[1] + normal_vectors[2] + normal_vectors[3])/4
-        x_vec = (points[3][2]-points[3][1])
+        z_vec = (normal_vectors[0] + normal_vectors[1] + normal_vectors[2] + normal_vectors[3])/len(points)
+        x_vec = (points[3][2]-points[3][1])'''
+
+        z_vec = np.cross(points[0] - points[2], points[0] - points[1])
+        x_vec = (points[2]-points[1])
+
+
 
     if hand == 1: #Mano derecha
-        normal_vectors = []
+
+        '''normal_vectors = []
         for hand_landmarks in points:
             normal_vector = np.cross(hand_landmarks[0] - hand_landmarks[1], hand_landmarks[0] - hand_landmarks[2]) # Producto de vectores para obtener la normal
             normal_vectors.append(normal_vector)
-        z_vec = (normal_vectors[0] + normal_vectors[1] + normal_vectors[2] + normal_vectors[3])/4
-        x_vec = (points[3][1]-points[3][2])
+        z_vec = (normal_vectors[0] + normal_vectors[1] + normal_vectors[2] + normal_vectors[3])/len(points)
+        x_vec = (points[3][1]-points[3][2])'''
+
+        z_vec = np.cross(points[0] - points[1], points[0] - points[2])
+        x_vec = (points[1]-points[2])
 
     z_vec /= np.linalg.norm(z_vec) # Lo divide por su norma para volverlo unitario
     x_vec /= np.linalg.norm(x_vec)
@@ -403,13 +413,13 @@ while True:
         ''' Draw body lines and save body references'''
         mpDraw.draw_landmarks(images, cuerpo.pose_landmarks, mpPose.POSE_CONNECTIONS)
 
-        hombro_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
-        codo_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_ELBOW]
-        muneca_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
+        hombro_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER] #Izquierda es derecha y viceversa porque la imagen está invertida
+        codo_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
+        muneca_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
         
-        hombro_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER]
-        codo_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
-        muneca_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
+        hombro_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
+        codo_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_ELBOW]
+        muneca_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
 
         ''' Calculate the angle of the elbow (just to check)'''
         angulo_izq = calculate_angle([hombro_izq.x,hombro_izq.y], [codo_izq.x,codo_izq.y], [muneca_izq.x,muneca_izq.y])
@@ -480,10 +490,14 @@ while True:
         Hombro_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[hombro_der_X,hombro_der_Y],hombro_der_Z)
         Codo_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[codo_der_X,codo_der_Y],codo_der_Z)
         Muneca_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[muneca_der_X,muneca_der_Y],muneca_der_Z)
-        
 
+        #print(f"Codo: {Codo_izq_3D}")
+        #print(f"Muneca: {Muneca_izq_3D}")
+        #print(f"HombroIzquierda : {Hombro_izq_3D}")
+        #print(f"HombroDerecha : {Hombro_der_3D}")
+        
         ''' Calculate the rotation of the left shoulder to orientate correctly to the camera'''
-        theta = mt.atan2((Hombro_der_3D[2]-Hombro_izq_3D[2]),(Hombro_der_3D[0]-Hombro_izq_3D[0])) #Ángulo entre los hombros en el plano definido por XZ
+        theta = mt.atan2((Hombro_izq_3D[2]-Hombro_der_3D[2]),(Hombro_izq_3D[0]-Hombro_der_3D[0])) #Ángulo entre los hombros en el plano definido por XZ
         theta = 180 - mt.degrees(theta) 
 
         #As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
@@ -495,7 +509,7 @@ while True:
 
 
         '''Generates the rotation for all the points'''
-        Pivote = (Hombro_izq_3D[0],Hombro_izq_3D[2]) #Rotamos sobre el hombro izquierdo
+        Pivote = (Hombro_der_3D[0],Hombro_der_3D[2]) #Rotamos sobre el hombro derecho
         
         rotar_hombro_izq = (Hombro_izq_3D[0],Hombro_izq_3D[2]) #Coordenadas x y z de los puntos a rotar
         rotar_codo_izq = (Codo_izq_3D[0],Codo_izq_3D[2])
@@ -516,6 +530,10 @@ while True:
         Hombro_izq_Final= [hombro_izq_rotado[0],Hombro_izq_3D[1],hombro_izq_rotado[1]] #Añadimos la componente Y que no ha cambiado 
         Codo_izq_Final= [codo_izq_rotado[0],Codo_izq_3D[1],codo_izq_rotado[1]]
         Muneca_izq_Final= [muneca_izq_rotado[0],Muneca_izq_3D[1],muneca_izq_rotado[1]]
+
+        #print("MunecaFinal : ",Muneca_izq_Final)
+        #print("HombroFinal : ",Hombro_izq_Final)
+        #print("CodoFinal : ",Codo_izq_Final)
 
         Hombro_der_Final= [hombro_der_rotado[0],Hombro_der_3D[1],hombro_der_rotado[1]]
         Codo_der_Final= [codo_der_rotado[0],Codo_der_3D[1],codo_der_rotado[1]]
@@ -544,16 +562,16 @@ while True:
         Brazo_Human_der = Human_Humero_der + Human_Cubito_der
         
     
-        if Brazo_Human_izq or Brazo_Human_der <= 0.8:
+        if Brazo_Human_izq and Brazo_Human_der <= 0.8:
 
             try:
                 #Obtain Robot-Human factor for arm length
                 RH_factor_izq = (0.5/Brazo_Human_izq)
-                RHfactor_der = (0.5/Brazo_Human_der)
+                RH_factor_der = (0.5/Brazo_Human_der)
 
             except:
                 RH_factor_izq = 1
-                RHfactor_der = 1
+                RH_factor_der = 1
 
             '''Cambiamos del sistema de coordenadas de la cámara al sistema de coordenadas del robot: 
             x_base_izq = z_human; y_base_izq = x_human; z_base_izq = y_human'''
@@ -570,8 +588,8 @@ while True:
             Translation = [(Robot_Hombro_der[0] + Hombro_der_Final[2]),(Robot_Hombro_der[1] + Hombro_der_Final[0]),(Robot_Hombro_der[2] + Hombro_der_Final[1])]
 
             Robot_Hombro_der = [(Translation[0] - Hombro_der_Final[2]),(Translation[1] - Hombro_der_Final[0]),(Translation[2]- Hombro_der_Final[1])]
-            Robot_Codo_der = [(Translation[0] - Codo_der_Final[2])*RHfactor_der,(Translation[1] - Codo_der_Final[0])*RHfactor_der,(Translation[2] - Codo_der_Final[1])*RHfactor_der]
-            Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RHfactor_der,(Translation[1] - Muneca_der_Final[0])*RHfactor_der,(Translation[2] - Muneca_der_Final[1])*RHfactor_der]
+            Robot_Codo_der = [(Translation[0] - Codo_der_Final[2])*RH_factor_der,(Translation[1] - Codo_der_Final[0])*RH_factor_der,(Translation[2] - Codo_der_Final[1])*RH_factor_der]
+            Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RH_factor_der,(Translation[1] - Muneca_der_Final[0])*RH_factor_der,(Translation[2] - Muneca_der_Final[1])*RH_factor_der]
 
 
             '''Obtenemos los puntos de ambas manos '''
@@ -677,12 +695,15 @@ while True:
                 Points_izq_3 = np.asarray([Uno_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
                 Points_izq_4 = np.asarray([Uno_izq_3D, Nueve_izq_3D, Diecisiete_izq_3D])
                 Points_izq = [Points_izq_1, Points_izq_2, Points_izq_3, Points_izq_4]
-                MatRot_izq = HandPlaneOrientation(Points_izq, 0) # 0 mano izquierda
+
+                pointsIzq = np.asarray([Cero_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
+                MatRot_izq = HandPlaneOrientation(pointsIzq , 0) # 0 mano izquierda
 
                 #print(MatRot_izq)
 
                 ''' Generate the left values for the UR3 robot'''
-                Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1]
+                Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1] # Coge el punto de la muñeca del cuerpo para la matriz de transformacion homogenea
+                print(Punto_izq)
                 PuntoCodo_izq = np.array([[Robot_Codo_izq[0]],[Robot_Codo_izq[1]],[Robot_Codo_izq[2]]])
                 
                 try:
@@ -702,7 +723,7 @@ while True:
                                 h = 0
                                 DATOSPRE_IZQ.append(MatrizBrazoIzq)
                                 CORCODOPRE_IZQ.append(PuntoCodo_izq)
-                                print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
+                                #print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
                                 r1 = Rotation.from_matrix(MatRot_izq)
                                 angles1 = r1.as_euler("xyz",degrees=False)
                                 EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
@@ -800,13 +821,15 @@ while True:
 
                 #print(Diecisiete_der_3D)
 
-                '''Right hand orientation''' 
+                '''Right hand orientation'''
                 Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
                 Points_der_2 = np.asarray([Cero_der_3D, Dos_der_3D, Nueve_der_3D])
                 Points_der_3 = np.asarray([Uno_der_3D, Cinco_der_3D, Diecisiete_der_3D])
                 Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
                 Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
-                MatRot_der = HandPlaneOrientation(Points_der, 1) # 1 mano derecha
+
+                pointsDer = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
+                MatRot_der = HandPlaneOrientation(pointsDer, 1) # 1 mano derecha
 
                 #print(MatRot_der)
 
@@ -832,7 +855,7 @@ while True:
                                 j = 0
                                 DATOSPRE_DER.append(MatrizBrazoDer)
                                 CORCODOPRE_DER.append(PuntoCodo_der)
-                                print("Valor de codo derecho",PuntoCodo_der[0,0])
+                                #print("Valor de codo derecho",PuntoCodo_der[0,0])
                                 r2 = Rotation.from_matrix(MatRot_der)
                                 angles2 = r2.as_euler("xyz",degrees=False)
                                 EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]

@@ -430,7 +430,8 @@ for i=1:1:length(ConfigFinalIzq)
     configuracionesIzq(5).JointPosition = ConfigFinalIzq(i,5);
     configuracionesIzq(6).JointPosition = ConfigFinalIzq(i,6);
     
-    zoom(gca,'on');
+    figure(2);
+    %zoom(gca,'on');
     show(robotIzq,configuracionesIzq,"Collisions","off"); % Muestra el robot con la ConfigFinal
     camzoom(1.7); 
     hold on

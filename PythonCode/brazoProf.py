@@ -439,7 +439,6 @@ while True:
         #print(f"Muneca: {MunecaBueno}")
         #print(f"HombroIzquierda : {HombroBueno}")
         #print(f"HombroDerecha : {Hombro2Bueno}")
-
         
         ''' Calculate the rotation of the left shoulder to orientate correctly to the camera the body'''
         theta = mt.atan2((HombroBueno[2]-Hombro2Bueno[2]),(HombroBueno[0]-Hombro2Bueno[0]))
@@ -460,12 +459,11 @@ while True:
         rotadoC = rotateY(Pivote,RotCodo,mt.radians(theta))
         rotadoM = rotateY(Pivote,RotMuneca,mt.radians(theta))
 
-        #print(f"MunecaBuena2 : ", {rotadoH[1],Hombro2Bueno[2]})
-
         HombroFinal= [rotadoH[0],HombroBueno[1],rotadoH[1]]
         CodoFinal= [rotadoC[0],CodoBueno[1],rotadoC[1]]
         MunecaFinal= [rotadoM[0],MunecaBueno[1],rotadoM[1]]
-        #print("MunecaBuena : ",MunecaFinal)
+        
+        #print("MunecaFinal : ",MunecaFinal)
         #print("HombroFinal : ",HombroFinal)
         #print("CodoFinal : ",CodoFinal)
 
@@ -499,7 +497,7 @@ while True:
 
 
             robotHombro = [(Translation[0] - HombroFinal[2]),(Translation[1] - HombroFinal[0]),(Translation[2]- HombroFinal[1])]
-            robotCodo = [(Translation[0] - CodoFinal[2]  )*factorRH,(Translation[1] - CodoFinal[0])*factorRH,(Translation[2] - CodoFinal[1])*factorRH]
+            robotCodo = [(Translation[0] - CodoFinal[2])*factorRH,(Translation[1] - CodoFinal[0])*factorRH,(Translation[2] - CodoFinal[1])*factorRH]
             robotMuneca = [(Translation[0] - MunecaFinal[2])*factorRH,(Translation[1] - MunecaFinal[0])*factorRH,(Translation[2] - MunecaFinal[1])*factorRH]
             
             #print(Translation)
@@ -560,6 +558,7 @@ while True:
             ''' Generate the values for the UR3 robot'''
             #m=np.array([[1,0,0,-0.07],[0,0.7072,-0.7072,0.7214],[0,0.7072,0.7072,-0.9052],[0,0,0,1]])
             punto = [robotMuneca[0],robotMuneca[1],robotMuneca[2],1]
+            print(punto)
             puntoCodo = np.array([[robotCodo[0]],[robotCodo[1]],[robotCodo[2]]])
             #print(punto)
             try:
@@ -579,7 +578,7 @@ while True:
                             h = 0
                             DATOSPRE.append(MatrizBrazo)
                             CORCODOPRE.append(puntoCodo)
-                            print("Valor de codo",puntoCodo[0,0])
+                            #print("Valor de codo",puntoCodo[0,0])
                             r = Rotation.from_matrix(MatRot)
                             angles = r.as_euler("xyz",degrees=False)
                             efectorFinal = [MatrizBrazo[0,3],MatrizBrazo[1,3],MatrizBrazo[2,3],angles[0],angles[1],angles[2]]
@@ -613,15 +612,15 @@ while True:
         break
 
 '''Filter orientation using a Gaussian Filter'''
-print(DATOSPRE)
+#print(DATOSPRE)
 R1,R2,R3,R4,R5,R6,R7,R8,R9 = smooth_rotations(DATOSPRE,1) # Filter values [0.5, 1]
 XEnd,YEnd,ZEnd = smooth_endefector(DATOSPRE,1)
 #plot_smoothed_EndEfector(DATOSPRE,XEnd,YEnd,ZEnd)
 XElbow,YElbow,ZElbow = smooth_elbow(CORCODOPRE,1)
-plot_smoothed_Elbow(CORCODOPRE,XElbow,YElbow,ZElbow)
+#plot_smoothed_Elbow(CORCODOPRE,XElbow,YElbow,ZElbow)
 print("**********************")
 #print(R1)
-plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+#plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 
 '''Save data filtered'''
 #print(DATOSPRE[0][0,0])
@@ -641,28 +640,28 @@ for n in range(len(XElbow)):
     CORCODO.append(puntoCodoFilter)
 
 
-print("--------------------------")
-print(DATOS)
-print("--------------------------")
+#print("--------------------------")
+#print(DATOS)
+#print("--------------------------")
 ''' Save all the values in .csv'''
 variable = np.asarray(DATOS).shape
-print("DATOS: ",variable[0])
+#print("DATOS: ",variable[0])
 DATOS= np.reshape(DATOS, (variable[0]*4, -1))
-print(np.asarray(DATOS).shape)
+#print(np.asarray(DATOS).shape)
 Modelo = pd.DataFrame(DATOS)
-Modelo.to_csv('/home/nox/BrazoCamara/ur_ikfast/DatosHumano/DatosBrazoHumano.csv',index=False, header=False) # use the path to wherever you want to save the files
+Modelo.to_csv('/home/carlos/TAICHI/HumanData/DatosBrazoHumano.csv',index=False, header=False) # use the path to wherever you want to save the files
 
 variable2 = np.asarray(CORCODO).shape
 CORCODO= np.reshape(CORCODO, (variable2[0]*3, -1))
 ModeloCodo = pd.DataFrame(CORCODO)
-ModeloCodo.to_csv('/home/nox/BrazoCamara/ur_ikfast/DatosHumano/CodoHumano.csv',index=False, header=False)
+ModeloCodo.to_csv('/home/carlos/TAICHI/HumanData/CodoHumano.csv',index=False, header=False)
 
 ModeloEfectorFinal = pd.DataFrame(EFECTOR)
-ModeloEfectorFinal.to_csv('/home/nox/BrazoCamara/ur_ikfast/DatosHumano/EfectorFinal.csv',index=False, header=False)
+ModeloEfectorFinal.to_csv('/home/carlos/TAICHI/HumanData/EfectorFinal.csv',index=False, header=False)
 
 ''' Close the application'''
 print("Application Closing")
 pipeline.stop()
 print("Application Closed.")
-plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+#plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 

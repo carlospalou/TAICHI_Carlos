@@ -13,7 +13,7 @@ robotModel = loadrobot("universalUR3","DataFormat","column");
 T1 = [1 0 0 0.07;0 0.7071 0.7071 0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
 setFixedTransform(robotModel.Bodies{1,1}.Joint,T1);
 ss = manipulatorStateSpace(robotModel);
-sv = manipulatorCollisionBodyValidator(ss,SkippedSelfCollisions="parent");
+sv = manipulatorCollisionBodyValidator(ss, SkippedSelfCollisions="parent");
 sv.ValidationDistance = 0.1;
 sv.IgnoreSelfCollision = true;
 
@@ -37,20 +37,20 @@ body3.Pose = matrizRot;
 body4.Pose = matrizRot;
 env = {body1 body2 body3 body4};
 sv.Environment = env;
-%To visualized the environment
-figure(11)
-show(robotModel,"Collisions","off");
-hold on
-show(env{1});
-show(env{2});
-show(env{3});
-show(env{4});
-hold off
+% To visualized the environment
+% figure(11)
+% show(robotModel,"Collisions","off");
+% hold on
+% show(env{1});
+% show(env{2});
+% show(env{3});
+% show(env{4});
+% hold off
 %% Inverse kinematics solver
 %% Read the files
 
-path = '/home/carlos/DatosBrazoHumano.csv';
-path2 = '/home/carlos/CodoHumano.csv';
+path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoIzquierdo.csv';
+path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoIzquierdo.csv';
 
 matrixRead = readmatrix(path);
 CodoRead = readmatrix(path2);
@@ -99,7 +99,7 @@ for i=1:4:iter
     % Elbow matrix
     VectorCodo = [CodoOrganizado(k,1), CodoOrganizado(k,2),CodoOrganizado(k,3)];
     VecCODO = [VecCODO;VectorCodo];
-    X_RAGoal = [matrix2(1,4) matrix2(2,4) matrix2(3,4)]; %ultima columna posicion, 
+    X_RAGoal = [matrix2(1,4) matrix2(2,4) matrix2(3,4)];
     gola = [gola;[matrixRead(i,4) matrixRead(i+1,4) matrixRead(i+2,4)]];
     gola2 = [gola2;X_RAGoal];
     Rot_mat = [matrix2(1,1) matrix2(1,2) matrix2(1,3);
@@ -119,7 +119,7 @@ for i=1:4:iter
             for jj = 1:1:6
                 configSoln(jj).JointPosition =res(ii,jj);
             end
-            %Check collision using the exact collision model
+            % Check collision using the exact collision model
             goalConfig = [configSoln(1).JointPosition configSoln(2).JointPosition configSoln(3).JointPosition configSoln(4).JointPosition configSoln(5).JointPosition configSoln(6).JointPosition];
             [validState,~] = checkCollision(robotModel,goalConfig',env,"IgnoreSelfCollision","off","Exhaustive","on","SkippedSelfCollisions","parent");
             if ~any(validState)
