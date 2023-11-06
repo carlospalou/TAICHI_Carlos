@@ -2,6 +2,7 @@
 % Script that plot the errors to comapre the eficiency
 % Position error
 figure(10);
+
 subplot(3,2,1);
 plot(gola2(:,1),'Color','g');
 hold on
@@ -9,18 +10,17 @@ plot(END(:,1),'Color','r');
 legend("X Robot","X Human");
 hold off
 title('X');
-% xlabel('Index');
+xlabel('Index');
 ylabel('Position X (m)');
 
 subplot(3,2,2);
-plot(END(:,2),'Color','g');
+plot(gola2(:,2),'Color','g');
 hold on
-
-plot(gola2(:,2),'Color','r');
+plot(END(:,2),'Color','r');
 legend("Y Robot","Y Human");
 hold off
 title('Y');
-% xlabel('Index');
+xlabel('Index');
 ylabel('Position Y (m)');
 
 subplot(3,2,3);
@@ -30,7 +30,7 @@ plot(END(:,3),'Color','r');
 legend("Z Robot","Z Human");
 hold off
 title('Z');
-% xlabel('Index');
+xlabel('Index');
 ylabel('Position Z (m)');
 
 subplot(3,2,4);

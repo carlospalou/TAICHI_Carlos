@@ -51,11 +51,14 @@ sv.Environment = env;
 %% Inverse kinematics solver
 %% Read the files
 
+%path = '/home/carlos/TAICHI/HumanData/Prueba1/DatosBrazoHumano.csv';
+%path2 = '/home/carlos/TAICHI/HumanData/Prueba1/CodoHumano.csv';
+
 %path = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/DatosBrazoHumano.csv';
 %path2 = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/CodoHumano.csv';
 
-path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoIzquierdo.csv';
-path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoIzquierdo.csv';
+path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/DatosBrazoIzquierdo.csv';
+path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/CodoIzquierdo.csv';
 
 matrixRead = readmatrix(path);
 CodoRead = readmatrix(path2);
@@ -271,6 +274,7 @@ plot3(gola2(length(gola2),1),gola2(length(gola2),2),gola2(length(gola2),3),'o','
 t.FontSize = 16;
 legend('Robot data','Human data','Initial point','Final point')
 hold off
+
 %% Plot the error values of the end efector to compare
 PlotError
 

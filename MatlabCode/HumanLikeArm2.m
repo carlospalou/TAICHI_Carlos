@@ -54,24 +54,23 @@ svI.Environment = env;
 svD.Environment = env;
 
 % To visualize the environment
-figure(1)
-show(robotModelIzq,"Collisions","off");
-hold on
-show(robotModelDer,"Collisions","off");
-show(env{1});
-show(env{2});
-show(env{3});
-show(env{4});
-hold off
-
+% figure(1)
+% show(robotModelIzq,"Collisions","off");
+% hold on
+% show(robotModelDer,"Collisions","off");
+% show(env{1});
+% show(env{2});
+% show(env{3});
+% show(env{4});
+% hold off
 
 %% Inverse kinematics solver
 
 % Read the files
-path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoIzquierdo.csv';
-path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoIzquierdo.csv';
-path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/DatosBrazoDerecho.csv';
-path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba1/CodoDerecho.csv';
+path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/DatosBrazoIzquierdo.csv';
+path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/CodoIzquierdo.csv';
+path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/DatosBrazoDerecho.csv';
+path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/CodoDerecho.csv';
 
 MatrixIzqRead = readmatrix(path_izq); % Almacena los datos del .csv en una matriz
 CodoIzqRead = readmatrix(path2_izq);
@@ -352,8 +351,8 @@ for i=1:4:iter_der
 
                 DistDer = real(WX*DistXDer + WO*DistODer + WH*DistMDer + ErroWristDer);
                 
-                CodoRobotRotDer = rotx(45)*X_CodoDer';
-                WristRobotRotDer= rotx(45)*X_Wrist1Der';
+                CodoRobotRotDer = rotx(-45)*X_CodoDer';
+                WristRobotRotDer= rotx(-45)*X_Wrist1Der';
 
                 % Check if it is finished
                 if DistXDer <= 0.05 && DistODer <= 0.16 && ~(CodoRobotRotDer(2)<-0.1 && WristRobotRotDer(2)>CodoRobotRotDer(2)) && DistDer < DistMinDer && configSolnDer(1).JointPosition >= HombroLim(1) && configSolnDer(1).JointPosition <= HombroLim(2) && configSolnDer(2).JointPosition >= HombroLim2(1) && configSolnDer(2).JointPosition <= HombroLim2(2)
@@ -390,10 +389,18 @@ Goal_Izq =[Goal_Izq(:,1)+0.07,Goal_Izq(:,2)+0.13,Goal_Izq(:,3)+1.15];
 
 Goal_Der(PEORES_DER,:) = [];
 Goal2_Der(PEORES_DER,:) = [];
-Goal_Der =[Goal_Der(:,1)+0.07,Goal_Der(:,2)+0.13,Goal_Der(:,3)+1.15];
+Goal_Der =[Goal_Der(:,1)+0.07,Goal_Der(:,2)-0.13,Goal_Der(:,3)+1.15];
+
 
 
 %% Plot the movements of the robotics arm respect the human elbow and wrist
+
+COD_IZQ = []; 
+COD_DER = [];
+END_IZQ = [];
+END_DER = [];
+ROTEND_IZQ = [];
+ROTEND_DER = [];
 
 robotIzq = loadrobot("universalUR3");
 setFixedTransform(robotIzq.Bodies{1,1}.Joint,TIzq);
@@ -402,21 +409,6 @@ configuracionesIzq = robotIzq.homeConfiguration;
 robotDer = loadrobot("universalUR3");
 setFixedTransform(robotDer.Bodies{1,1}.Joint,TDer);
 configuracionesDer = robotDer.homeConfiguration;
-
-COD_IZQ = []; 
-COD_DER = [];
-DISTANCIAS_IZQ = [];
-DISTANCIAS_DER = [];
-END_IZQ = [];
-END_DER = [];
-ROTEND_IZQ = [];
-ROTEND_DER = [];
-X_IZQ = [];
-X_DER = [];
-Y_IZQ = [];
-Y_DER = [];
-Z_IZQ = [];
-Z_DER = [];
 
 k=0;
 
@@ -430,72 +422,80 @@ for i=1:1:length(ConfigFinalIzq)
     configuracionesIzq(5).JointPosition = ConfigFinalIzq(i,5);
     configuracionesIzq(6).JointPosition = ConfigFinalIzq(i,6);
     
-    zoom(gca,'on');
-    show(robotIzq,configuracionesIzq,"Collisions","off"); % Muestra el robot con la ConfigFinal
-    camzoom(1.7); 
-    hold on
-    show(env{1});
-    show(env{2});
-    show(env{3});
-    show(env{4}); % Muestra el cuerpo del robot
-    hold off
-
+%     zoom(gca,'on'); % Zoom en los ejes actuales (get current axes)
+%     figure(1);
+%     show(robotIzq,configuracionesIzq,"Collisions","off"); % Muestra el robot con la ConfigFinal
+    
     Codo_Izq = getTransform(robotIzq,configuracionesIzq,'forearm_link','base_link'); 
     COD_IZQ = [COD_IZQ; Codo_Izq(1,4) Codo_Izq(2,4) Codo_Izq(3,4)]; % Guarda las posiciones del codo respecto a la base, el hombro
+    
+%     camzoom(1.7); 
+%     hold on
+%     show(env{1});
+%     show(env{2});
+%     show(env{3});
+%     show(env{4}); % Muestra el cuerpo del robot
+%     hold on
 
-    figure(3);
-    plot3(VEC_CODO_IZQ(k,1)+0.07, VEC_CODO_IZQ(k,2)+0.13, VEC_CODO_IZQ(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
-    plot3(Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+%     plot3(VEC_CODO_IZQ(k,1)+0.07, VEC_CODO_IZQ(k,2)+0.13, VEC_CODO_IZQ(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
+%     plot3(Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+%     hold on
 
     PuntoEndIzq = getTransform(robotIzq,configuracionesIzq,'tool0','base_link');
     PuntoIzq = [Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3)];
     END_IZQ = [END_IZQ; PuntoEndIzq(1,4), PuntoEndIzq(2,4), PuntoEndIzq(3,4)];
     ROTEND_IZQ = [ROTEND_IZQ; PuntoEndIzq(1,1),PuntoEndIzq(1,2),PuntoEndIzq(1,3); PuntoEndIzq(2,1),PuntoEndIzq(2,2),PuntoEndIzq(2,3); PuntoEndIzq(3,1),PuntoEndIzq(3,2),PuntoEndIzq(3,3)];
 
+%     pause(0.001);
+%     hold off
 end
 
 k=0;
 
 for i=1:1:length(ConfigFinalDer)
+    k = k+1;
 
-    k = k+1
-    configuracionesIzq(1).JointPosition = ConfigFinalDer(i,1);
-    configuracionesIzq(2).JointPosition = ConfigFinalDer(i,2);
-    configuracionesIzq(3).JointPosition = ConfigFinalDer(i,3);
-    configuracionesIzq(4).JointPosition = ConfigFinalDer(i,4);
-    configuracionesIzq(5).JointPosition = ConfigFinalDer(i,5);
-    configuracionesIzq(6).JointPosition = ConfigFinalDer(i,6);
-    zoom(gca,'on');
-    show(robotIzq,configuracionesIzq,"Collisions","off");
-    Codo_Der = getTransform(robotIzq,configuracionesIzq,'forearm_link','base_link');
+    configuracionesDer(1).JointPosition = ConfigFinalDer(i,1);
+    configuracionesDer(2).JointPosition = ConfigFinalDer(i,2);
+    configuracionesDer(3).JointPosition = ConfigFinalDer(i,3);
+    configuracionesDer(4).JointPosition = ConfigFinalDer(i,4);
+    configuracionesDer(5).JointPosition = ConfigFinalDer(i,5);
+    configuracionesDer(6).JointPosition = ConfigFinalDer(i,6);
+    
+%     zoom(gca,'on');
+%     figure(2);
+%     show(robotIzq,configuracionesDer,"Collisions","off");
+    
+    Codo_Der = getTransform(robotIzq,configuracionesDer,'forearm_link','base_link');
     COD_DER = [COD_DER; Codo_Der(1,4) Codo_Der(2,4) Codo_Der(3,4)];
-    camzoom(1.7);
-    hold on
+    
+%     camzoom(1.7);
+%     hold on
+%     show(env{1});
+%     show(env{2});
+%     show(env{3});
+%     show(env{4});
+%     hold on
 
-    show(env{1});
-    show(env{2});
-    show(env{3});
-    show(env{4});
-    hold on
+%     plot3(VEC_CODO_DER(k,1)+0.07,VEC_CODO_DER(k,2)+0.13,VEC_CODO_DER(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
+%     plot3(Goal_Der(k,1),Goal_Der(k,2),Goal_Der(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+%     hold on
 
-    plot3(VEC_CODO_DER(k,1)+0.07,VEC_CODO_DER(k,2)+0.13,VEC_CODO_DER(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
-    plot3(Goal_Der(k,1),Goal_Der(k,2),Goal_Der(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
-    hold on
-
-    PuntoEndDer = getTransform(robotIzq,configuracionesIzq,'tool0','base_link');
+    PuntoEndDer = getTransform(robotDer,configuracionesDer,'tool0','base_link');
     PuntoDer = [Goal_Der(k,1),Goal_Der(k,2),Goal_Der(k,3)];
     END_DER = [END_DER;PuntoEndDer(1,4),PuntoEndDer(2,4),PuntoEndDer(3,4)];
     ROTEND_DER = [ROTEND_DER;PuntoEndDer(1,1),PuntoEndDer(1,2),PuntoEndDer(1,3);PuntoEndDer(2,1),PuntoEndDer(2,2),PuntoEndDer(2,3);PuntoEndDer(3,1),PuntoEndDer(3,2),PuntoEndDer(3,3)];
 
-    pause(0.001);
-    hold off
+%     pause(0.001);
+%     hold off
 end
 
 
+%% Plot the movement in 3D (smoothed to visualized it better)
 
-%% Plot in 3D (smoothed to visualized it better)
+% Left
+figure(3);
 
-figure;
 plot3(Goal2_Izq(:,1),Goal2_Izq(:,2),Goal2_Izq(:,3),'Color','g');
 hold on
 xlabel('X (m)')
@@ -504,23 +504,176 @@ zlabel('Z (m)')
 plot3(END_IZQ(:,1),END_IZQ(:,2),END_IZQ(:,3),'Color','b');
 plot3(Goal2_Izq(1,1),Goal2_Izq(1,2),Goal2_Izq(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
 plot3(Goal2_Izq(length(Goal2_Izq),1),Goal2_Izq(length(Goal2_Izq),2),Goal2_Izq(length(Goal2_Izq),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
-[t,s]=title("Comparision between data acquired");
-t.FontSize = 16;
 legend('Robot data','Human data','Initial point','Final point')
 hold off
 
-figure;
-plot3(Goal2_Der(:,1),Goal2_Der(:,2),Goal2_Der(:,3),'Color','g');
+% Right
+% figure(4);
+% 
+% plot3(Goal2_Der(:,1),Goal2_Der(:,2),Goal2_Der(:,3),'Color','g');
+% hold on
+% xlabel('X (m)')
+% ylabel('Y (m)')
+% zlabel('Z (m)')
+% plot3(END_DER(:,1),END_DER(:,2),END_DER(:,3),'Color','b');
+% plot3(Goal2_Der(1,1),Goal2_Der(1,2),Goal2_Der(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
+% plot3(Goal2_Der(length(Goal2_Der),1),Goal2_Der(length(Goal2_Der),2),Goal2_Der(length(Goal2_Der),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
+% legend('Robot data','Human data','Initial point','Final point')
+% hold off
+
+
+%% Plot the error values of the end efector 
+
+THETA_IZQ = [];
+THETA2_IZQ = [];
+V_IZQ = [];
+V2_IZQ = [];
+THETA_DER = [];
+THETA2_DER = [];
+V_DER = [];
+V2_DER = [];
+
+for i=1:3:length(ROTEND_IZQ)
+
+    R1_IZQ = [ROTMAT_IZQ(i,1),ROTMAT_IZQ(i,2),ROTMAT_IZQ(i,3);ROTMAT_IZQ(i+1,1),ROTMAT_IZQ(i+1,2),ROTMAT_IZQ(i+1,3);ROTMAT_IZQ(i+2,1),ROTMAT_IZQ(i+2,2),ROTMAT_IZQ(i+2,3)];
+    R2_IZQ = [ROTEND_IZQ(i,1),ROTEND_IZQ(i,2),ROTEND_IZQ(i,3);ROTEND_IZQ(i+1,1),ROTEND_IZQ(i+1,2),ROTEND_IZQ(i+1,3);ROTEND_IZQ(i+2,1),ROTEND_IZQ(i+2,2),ROTEND_IZQ(i+2,3)];
+    R_1_IZQ = R1_IZQ;
+    R_2_IZQ = R2_IZQ;
+    ang_axis_izq = rotm2axang(R_1_IZQ); % Guarda la salida de la función en una variable
+    ang_axis2_izq = rotm2axang(R_2_IZQ);
+    theta_izq = ang_axis_izq(4); % Ángulo de rotación en radianes
+    theta2_izq = ang_axis2_izq(4);
+    v_izq = ang_axis_izq(1:3); % Coordenadas del eje de rotación unitario
+    v2_izq = ang_axis2_izq(1:3);
+    THETA_IZQ = [THETA_IZQ;theta_izq];
+    THETA2_IZQ = [THETA2_IZQ;theta2_izq];
+    V_IZQ = [V_IZQ;v_izq];
+    V2_IZQ = [V2_IZQ;v2_izq];
+
+end
+
+for i=1:3:length(ROTEND_DER)
+    R1_DER = [ROTMAT_DER(i,1),ROTMAT_DER(i,2),ROTMAT_DER(i,3);ROTMAT_DER(i+1,1),ROTMAT_DER(i+1,2),ROTMAT_DER(i+1,3);ROTMAT_DER(i+2,1),ROTMAT_DER(i+2,2),ROTMAT_DER(i+2,3)];
+    R2_DER = [ROTEND_DER(i,1),ROTEND_DER(i,2),ROTEND_DER(i,3);ROTEND_DER(i+1,1),ROTEND_DER(i+1,2),ROTEND_DER(i+1,3);ROTEND_DER(i+2,1),ROTEND_DER(i+2,2),ROTEND_DER(i+2,3)];
+    R_1_DER = R1_DER;
+    R_2_DER = R2_DER;
+    ang_axis_der = rotm2axang(R_1_DER); % Guarda la salida de la función en una variable
+    ang_axis2_der = rotm2axang(R_2_DER);
+    theta_der = ang_axis_der(4); % Ángulo de rotación en radianes
+    theta2_der = ang_axis2_der(4);
+    v_der = ang_axis_der(1:3); % Coordenadas del eje de rotación unitario
+    v2_der = ang_axis2_der(1:3);
+    THETA_DER = [THETA_DER;theta_der];
+    THETA2_DER = [THETA2_DER;theta2_der];
+    V_DER = [V_DER;v_der];
+    V2_DER = [V2_DER;v2_der];    
+end
+
+
+% Left
+figure(5);
+
+subplot(3,2,1);
+plot(Goal2_Izq(:,1),'Color','g');
 hold on
-xlabel('X (m)')
-ylabel('Y (m)')
-zlabel('Z (m)')
-plot3(END_DER(:,1),END_DER(:,2),END_DER(:,3),'Color','b');
-plot3(Goal2_Der(1,1),Goal2_Der(1,2),Goal2_Der(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
-plot3(Goal2_Der(length(Goal2_Der),1),Goal2_Der(length(Goal2_Der),2),Goal2_Der(length(Goal2_Der),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
-[t,s]=title("Comparision between data acquired");
-t.FontSize = 16;
-legend('Robot data','Human data','Initial point','Final point')
+plot(END_IZQ(:,1),'Color','r');
+legend("X Robot","X Human");
+hold off
+title('X');
+xlabel('Index');
+ylabel('Position X (m)');
+
+subplot(3,2,2);
+plot(Goal2_Izq(:,2),'Color','g');
+hold on
+plot(END_IZQ(:,2),'Color','r');
+legend("Y Robot","Y Human");
+hold off
+title('Y');
+xlabel('Index');
+ylabel('Position Y (m)');
+
+subplot(3,2,3);
+plot(Goal2_Izq(:,3),'Color','g');
+hold on
+plot(END_IZQ(:,3),'Color','r');
+legend("Z Robot","Z Human");
+hold off
+title('Z');
+xlabel('Index');
+ylabel('Position Z (m)');
+
+subplot(3,2,4);
+boxplot(abs(Goal2_Izq(:,:) - END_IZQ(:,:)),'Labels',{'Error X','Error Y','Error Z'});
+title('Position Error');
+ylabel('Error (m)');
+
+subplot(3,2,5);
+plot(THETA_IZQ);
+hold on
+plot(THETA2_IZQ)
+title('Rotation end-effector');
+xlabel('Index');
+ylabel('Theta (rad)');
+legend("Theta Robot","Theta Human");
 hold off
 
-%% Plot the error values of the end efector to compare
+subplot(3,2,6);
+boxplot(abs(THETA_IZQ - THETA2_IZQ)*0.3);
+title('Error Theta');
+ylabel('Theta error (rad)');
+hold off
+
+% Right
+figure(6);
+
+subplot(3,2,1);
+plot(Goal2_Der(:,1),'Color','g');
+hold on
+plot(END_DER(:,1),'Color','r');
+legend("X Robot","X Human");
+hold off
+title('Right X');
+xlabel('Index');
+ylabel('Position X (m)');
+
+subplot(3,2,2);
+plot(Goal2_Der(:,2),'Color','g');
+hold on
+plot(END_DER(:,2),'Color','r');
+legend("Y Robot","Y Human");
+hold off
+title('Right Y');
+xlabel('Index');
+ylabel('Position Y (m)');
+
+subplot(3,2,3);
+plot(Goal2_Der(:,3),'Color','g');
+hold on
+plot(END_DER(:,3),'Color','r');
+legend("Z Robot","Z Human");
+hold off
+title('Right Z');
+xlabel('Index');
+ylabel('Position Z (m)');
+
+subplot(3,2,4);
+boxplot(abs(Goal2_Der(:,:) - END_DER(:,:)),'Labels',{'Error X','Error Y','Error Z'});
+title('Position Error');
+ylabel('Error (m)');
+
+subplot(3,2,5);
+plot(THETA_DER);
+hold on
+plot(THETA2_DER)
+title('Rotation end-effector');
+xlabel('Index');
+ylabel('Theta (rad)');
+legend("Theta Robot","Theta Human");
+hold off
+
+subplot(3,2,6);
+boxplot(abs(THETA_DER - THETA2_DER)*0.3);
+title('Error Theta');
+ylabel('Theta error (rad)');
+hold off
