@@ -67,10 +67,10 @@ svD.Environment = env;
 %% Inverse kinematics solver
 
 % Read the files
-path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/DatosBrazoIzquierdo.csv';
-path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/CodoIzquierdo.csv';
-path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/DatosBrazoDerecho.csv';
-path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/CodoDerecho.csv';
+path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/DatosBrazoIzquierdo.csv';
+path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/CodoIzquierdo.csv';
+path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/DatosBrazoDerecho.csv';
+path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/CodoDerecho.csv';
 
 MatrixIzqRead = readmatrix(path_izq); % Almacena los datos del .csv en una matriz
 CodoIzqRead = readmatrix(path2_izq);

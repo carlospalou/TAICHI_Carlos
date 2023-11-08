@@ -664,5 +664,5 @@ ModeloEfectorFinal.to_csv('/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntig
 print("Application Closing")
 pipeline.stop()
 print("Application Closed.")
-#plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 
