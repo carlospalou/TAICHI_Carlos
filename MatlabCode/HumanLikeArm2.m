@@ -5,7 +5,7 @@ clear;clc;close all;
 robotIzq = loadrobot("universalUR3"); % Usa una funcion de Robotics System Toolbox para cargar el robot UR3
 robotDer = loadrobot("universalUR3");
 TI = [1 0 0 0;0 0.7071 0.7071 0;0 -0.7071 0.7071 0;0 0 0 1]; % Matriz del brazo izquierdo solo rotacion, sin desplazamiento, rotacion de -45º en X
-TD = [1 0 0 0;0 -0.7071 -0.7071 0;0 -0.7071 0.7071 0;0 0 0 1]; % Matriz del brazo izquierdo, rotacion 45º en X y 'flip'
+TD = [-1 0 0 0;0 -0.7071 -0.7071 0;0 -0.7071 0.7071 0;0 0 0 1]; % Matriz del brazo izquierdo, rotacion 45º en X y 'flip'
 HombroLim = [-3.14,3.14];
 HombroLim2 = [-2, 1.5];
 weights = [2, 3.42, 1.26, 0.8, 0.8, 0.35];
@@ -22,7 +22,7 @@ svI.ValidationDistance = 0.1;
 svI.IgnoreSelfCollision = true; % Ignora el propio brazo como colision 
 
 robotModelDer = loadrobot("universalUR3","DataFormat","column"); 
-TDer = [1 0 0 0.07;0 -0.7071 -0.7071 -0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
+TDer = [-1 0 0 0.07;0 -0.7071 -0.7071 -0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
 setFixedTransform(robotModelDer.Bodies{1,1}.Joint,TDer);
 ssD = manipulatorStateSpace(robotModelDer); 
 svD = manipulatorCollisionBodyValidator(ssD, SkippedSelfCollisions="parent"); 
@@ -64,13 +64,14 @@ svD.Environment = env;
 % show(env{4});
 % hold off
 
+
 %% Inverse kinematics solver
 
 % Read the files
-path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/DatosBrazoIzquierdo.csv';
-path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/CodoIzquierdo.csv';
-path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/DatosBrazoDerecho.csv';
-path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/CodoDerecho.csv';
+path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/DatosBrazoIzquierdo.csv';
+path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/CodoIzquierdo.csv';
+path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/DatosBrazoDerecho.csv';
+path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/CodoDerecho.csv';
 
 MatrixIzqRead = readmatrix(path_izq); % Almacena los datos del .csv en una matriz
 CodoIzqRead = readmatrix(path2_izq);
@@ -403,17 +404,19 @@ ROTEND_IZQ = [];
 ROTEND_DER = [];
 
 robotIzq = loadrobot("universalUR3");
+TIzq = [1 0 0 0.07;0 0.7071 0.7071 0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
 setFixedTransform(robotIzq.Bodies{1,1}.Joint,TIzq);
 configuracionesIzq = robotIzq.homeConfiguration;
 
 robotDer = loadrobot("universalUR3");
+TDer = [-1 0 0 0.07;0 -0.7071 -0.7071 -0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
 setFixedTransform(robotDer.Bodies{1,1}.Joint,TDer);
 configuracionesDer = robotDer.homeConfiguration;
 
 k=0;
 
 for i=1:1:length(ConfigFinalIzq)
-    k = k+1;
+    k = k+1
 
     configuracionesIzq(1).JointPosition = ConfigFinalIzq(i,1); % Establece la ConfigFinal como la configuracion del robot
     configuracionesIzq(2).JointPosition = ConfigFinalIzq(i,2);
@@ -421,39 +424,39 @@ for i=1:1:length(ConfigFinalIzq)
     configuracionesIzq(4).JointPosition = ConfigFinalIzq(i,4);
     configuracionesIzq(5).JointPosition = ConfigFinalIzq(i,5);
     configuracionesIzq(6).JointPosition = ConfigFinalIzq(i,6);
-    
-%     zoom(gca,'on'); % Zoom en los ejes actuales (get current axes)
-%     figure(1);
-%     show(robotIzq,configuracionesIzq,"Collisions","off"); % Muestra el robot con la ConfigFinal
+
+    figure(1);
+    zoom(gca,'on'); % Zoom en los ejes actuales (get current axes)
+    show(robotIzq,configuracionesIzq,"Collisions","off"); % Muestra el robot con la ConfigFinal
     
     Codo_Izq = getTransform(robotIzq,configuracionesIzq,'forearm_link','base_link'); 
     COD_IZQ = [COD_IZQ; Codo_Izq(1,4) Codo_Izq(2,4) Codo_Izq(3,4)]; % Guarda las posiciones del codo respecto a la base, el hombro
     
-%     camzoom(1.7); 
-%     hold on
-%     show(env{1});
-%     show(env{2});
-%     show(env{3});
-%     show(env{4}); % Muestra el cuerpo del robot
-%     hold on
+    camzoom(1.7); 
+    hold on
+    show(env{1});
+    show(env{2});
+    show(env{3});
+    show(env{4}); % Muestra el cuerpo del robot
+    hold on
 
-%     plot3(VEC_CODO_IZQ(k,1)+0.07, VEC_CODO_IZQ(k,2)+0.13, VEC_CODO_IZQ(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
-%     plot3(Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
-%     hold on
+    plot3(VEC_CODO_IZQ(k,1)+0.07, VEC_CODO_IZQ(k,2)+0.13, VEC_CODO_IZQ(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
+    plot3(Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+    hold on
 
     PuntoEndIzq = getTransform(robotIzq,configuracionesIzq,'tool0','base_link');
     PuntoIzq = [Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3)];
     END_IZQ = [END_IZQ; PuntoEndIzq(1,4), PuntoEndIzq(2,4), PuntoEndIzq(3,4)];
     ROTEND_IZQ = [ROTEND_IZQ; PuntoEndIzq(1,1),PuntoEndIzq(1,2),PuntoEndIzq(1,3); PuntoEndIzq(2,1),PuntoEndIzq(2,2),PuntoEndIzq(2,3); PuntoEndIzq(3,1),PuntoEndIzq(3,2),PuntoEndIzq(3,3)];
 
-%     pause(0.001);
-%     hold off
+    pause(0.001);
+    hold off
 end
 
-k=0;
+l=0;
 
 for i=1:1:length(ConfigFinalDer)
-    k = k+1;
+    l = l+1
 
     configuracionesDer(1).JointPosition = ConfigFinalDer(i,1);
     configuracionesDer(2).JointPosition = ConfigFinalDer(i,2);
@@ -462,40 +465,39 @@ for i=1:1:length(ConfigFinalDer)
     configuracionesDer(5).JointPosition = ConfigFinalDer(i,5);
     configuracionesDer(6).JointPosition = ConfigFinalDer(i,6);
     
-%     zoom(gca,'on');
-%     figure(2);
-%     show(robotIzq,configuracionesDer,"Collisions","off");
+    figure(2);
+    zoom(gca,'on');
+    show(robotIzq,configuracionesDer,"Collisions","off");
     
     Codo_Der = getTransform(robotIzq,configuracionesDer,'forearm_link','base_link');
     COD_DER = [COD_DER; Codo_Der(1,4) Codo_Der(2,4) Codo_Der(3,4)];
     
-%     camzoom(1.7);
-%     hold on
-%     show(env{1});
-%     show(env{2});
-%     show(env{3});
-%     show(env{4});
-%     hold on
+    camzoom(1.7);
+    hold on
+    show(env{1});
+    show(env{2});
+    show(env{3});
+    show(env{4});
+    hold on
 
-%     plot3(VEC_CODO_DER(k,1)+0.07,VEC_CODO_DER(k,2)+0.13,VEC_CODO_DER(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
-%     plot3(Goal_Der(k,1),Goal_Der(k,2),Goal_Der(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
-%     hold on
+    plot3(VEC_CODO_DER(l,1)+0.07,VEC_CODO_DER(l,2)+0.13,VEC_CODO_DER(l,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
+    plot3(Goal_Der(l,1),Goal_Der(l,2),Goal_Der(l,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+    hold on
 
     PuntoEndDer = getTransform(robotDer,configuracionesDer,'tool0','base_link');
-    PuntoDer = [Goal_Der(k,1),Goal_Der(k,2),Goal_Der(k,3)];
+    PuntoDer = [Goal_Der(l,1),Goal_Der(l,2),Goal_Der(l,3)];
     END_DER = [END_DER;PuntoEndDer(1,4),PuntoEndDer(2,4),PuntoEndDer(3,4)];
     ROTEND_DER = [ROTEND_DER;PuntoEndDer(1,1),PuntoEndDer(1,2),PuntoEndDer(1,3);PuntoEndDer(2,1),PuntoEndDer(2,2),PuntoEndDer(2,3);PuntoEndDer(3,1),PuntoEndDer(3,2),PuntoEndDer(3,3)];
 
-%     pause(0.001);
-%     hold off
+    pause(0.001);
+    hold off
 end
 
 
 %% Plot the movement in 3D (smoothed to visualized it better)
 
 % Left
-figure(3);
-
+figure(3)
 plot3(Goal2_Izq(:,1),Goal2_Izq(:,2),Goal2_Izq(:,3),'Color','g');
 hold on
 xlabel('X (m)')
@@ -505,22 +507,28 @@ plot3(END_IZQ(:,1),END_IZQ(:,2),END_IZQ(:,3),'Color','b');
 plot3(Goal2_Izq(1,1),Goal2_Izq(1,2),Goal2_Izq(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
 plot3(Goal2_Izq(length(Goal2_Izq),1),Goal2_Izq(length(Goal2_Izq),2),Goal2_Izq(length(Goal2_Izq),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
 legend('Robot data','Human data','Initial point','Final point')
+xlim([-0.5, 0.5]);
+ylim([-0.5, 0.5]);
+zlim([-0.5, 0.5]);
 hold off
+title('Left', 'FontSize', 14)
 
-% Right
-% figure(4);
-% 
-% plot3(Goal2_Der(:,1),Goal2_Der(:,2),Goal2_Der(:,3),'Color','g');
-% hold on
-% xlabel('X (m)')
-% ylabel('Y (m)')
-% zlabel('Z (m)')
-% plot3(END_DER(:,1),END_DER(:,2),END_DER(:,3),'Color','b');
-% plot3(Goal2_Der(1,1),Goal2_Der(1,2),Goal2_Der(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
-% plot3(Goal2_Der(length(Goal2_Der),1),Goal2_Der(length(Goal2_Der),2),Goal2_Der(length(Goal2_Der),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
-% legend('Robot data','Human data','Initial point','Final point')
-% hold off
-
+%Right
+figure(4)
+plot3(Goal2_Der(:,1),Goal2_Der(:,2),Goal2_Der(:,3),'Color','g');
+hold on
+xlabel('X (m)')
+ylabel('Y (m)')
+zlabel('Z (m)')
+plot3(END_DER(:,1),END_DER(:,2),END_DER(:,3),'Color','b');
+plot3(Goal2_Der(1,1),Goal2_Der(1,2),Goal2_Der(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
+plot3(Goal2_Der(length(Goal2_Der),1),Goal2_Der(length(Goal2_Der),2),Goal2_Der(length(Goal2_Der),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
+legend('Robot data','Human data','Initial point','Final point')
+xlim([-0.5, 0.5]);
+ylim([-0.5, 0.5]);
+zlim([-0.5, 0.5]);
+hold off
+title('Right', 'FontSize', 14)
 
 %% Plot the error values of the end efector 
 
@@ -571,7 +579,7 @@ end
 
 
 % Left
-figure(5);
+figure(5)
 
 subplot(3,2,1);
 plot(Goal2_Izq(:,1),'Color','g');
@@ -579,7 +587,7 @@ hold on
 plot(END_IZQ(:,1),'Color','r');
 legend("X Robot","X Human");
 hold off
-title('X');
+title('Left X');
 xlabel('Index');
 ylabel('Position X (m)');
 
@@ -589,7 +597,7 @@ hold on
 plot(END_IZQ(:,2),'Color','r');
 legend("Y Robot","Y Human");
 hold off
-title('Y');
+title('Left Y');
 xlabel('Index');
 ylabel('Position Y (m)');
 
@@ -599,7 +607,7 @@ hold on
 plot(END_IZQ(:,3),'Color','r');
 legend("Z Robot","Z Human");
 hold off
-title('Z');
+title('Left Z');
 xlabel('Index');
 ylabel('Position Z (m)');
 
@@ -625,7 +633,7 @@ ylabel('Theta error (rad)');
 hold off
 
 % Right
-figure(6);
+figure(6)
 
 subplot(3,2,1);
 plot(Goal2_Der(:,1),'Color','g');
@@ -677,3 +685,4 @@ boxplot(abs(THETA_DER - THETA2_DER)*0.3);
 title('Error Theta');
 ylabel('Theta error (rad)');
 hold off
+
