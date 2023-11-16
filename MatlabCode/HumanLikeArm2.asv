@@ -53,24 +53,25 @@ env = {body1 body2 body3 body4 }; % Crea un entorno
 svI.Environment = env;
 svD.Environment = env;
 
-% %To visualize the environment
+% To visualize the environment
 % figure(1)
-% show(robotIzq,"Collisions","off");
+% show(robotModelIzq,"Collisions","off");
 % hold on
-% show(robotDer,"Collisions","off");
-% % show(env{1});
-% % show(env{2});
-% % show(env{3});
-% % show(env{4});
+% show(robotModelDer,"Collisions","off");
+% show(env{1});
+% show(env{2});
+% show(env{3});
+% show(env{4});
 % hold off
+
 
 %% Inverse kinematics solver
 
 % Read the files
-path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/DatosBrazoIzquierdo.csv';
-path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/CodoIzquierdo.csv';
-path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/DatosBrazoDerecho.csv';
-path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/CodoDerecho.csv';
+path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/DatosBrazoIzquierdo.csv';
+path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/CodoIzquierdo.csv';
+path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/DatosBrazoDerecho.csv';
+path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/CodoDerecho.csv';
 
 MatrixIzqRead = readmatrix(path_izq); % Almacena los datos del .csv en una matriz
 CodoIzqRead = readmatrix(path2_izq);
@@ -355,7 +356,7 @@ for i=1:4:iter_der
                 WristRobotRotDer= rotx(-45)*X_Wrist1Der';
 
                 % Check if it is finished
-                if DistXDer <= 0.05 && DistODer <= 0.16 && ~(CodoRobotRotDer(2)<-0.1 && WristRobotRotDer(2)>CodoRobotRotDer(2)) && DistDer < DistMinDer && configSolnDer(1).JointPosition >= HombroLim(1) && configSolnDer(1).JointPosition <= HombroLim(2) %&& configSolnDer(2).JointPosition >= HombroLim2(1) %&& %configSolnDer(2).JointPosition <= HombroLim2(2)
+                if DistXDer <= 0.05 && DistODer <= 0.16 && ~(CodoRobotRotDer(2)<-0.1 && WristRobotRotDer(2)>CodoRobotRotDer(2)) && DistDer < DistMinDer && configSolnDer(1).JointPosition >= HombroLim(1) && configSolnDer(1).JointPosition <= HombroLim(2) && configSolnDer(2).JointPosition >= HombroLim2(1) && configSolnDer(2).JointPosition <= HombroLim2(2)
                     DistMinDer = DistDer;
                     MejorConfigDer = [configSolnDer(1).JointPosition configSolnDer(2).JointPosition configSolnDer(3).JointPosition configSolnDer(4).JointPosition configSolnDer(5).JointPosition configSolnDer(6).JointPosition];
                     mejor_ii = ii;
@@ -419,36 +420,36 @@ for i=1:1:length(ConfigFinalIzq)
     configuracionesIzq(5).JointPosition = ConfigFinalIzq(i,5);
     configuracionesIzq(6).JointPosition = ConfigFinalIzq(i,6);
 
-    figure(1);
-    zoom(gca,'on'); % Zoom en los ejes actuales (get current axes)
-    show(robotIzq,configuracionesIzq,"Collisions","off"); % Muestra el robot con la ConfigFinal
+%     figure(1);
+%     zoom(gca,'on'); % Zoom en los ejes actuales (get current axes)
+%     show(robotIzq,configuracionesIzq,"Collisions","off"); % Muestra el robot con la ConfigFinal
     
     Codo_Izq = getTransform(robotIzq,configuracionesIzq,'forearm_link','base_link'); 
     COD_IZQ = [COD_IZQ; Codo_Izq(1,4) Codo_Izq(2,4) Codo_Izq(3,4)]; % Guarda las posiciones del codo respecto a la base, el hombro
     
-    camzoom(1.7); 
-    hold on
-    show(env{1});
-    show(env{2});
-    show(env{3});
-    show(env{4}); % Muestra el cuerpo del robot
-    hold on
+%     camzoom(1.7); 
+%     hold on
+%     show(env{1});
+%     show(env{2});
+%     show(env{3});
+%     show(env{4}); % Muestra el cuerpo del robot
+%     hold on
 
-    plot3(VEC_CODO_IZQ(k,1)+0.07, VEC_CODO_IZQ(k,2)+0.13, VEC_CODO_IZQ(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
-    plot3(Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
-    hold on
+%     plot3(VEC_CODO_IZQ(k,1)+0.07, VEC_CODO_IZQ(k,2)+0.13, VEC_CODO_IZQ(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
+%     plot3(Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+%     hold on
 
     PuntoEndIzq = getTransform(robotIzq,configuracionesIzq,'tool0','base_link');
     PuntoIzq = [Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3)];
     END_IZQ = [END_IZQ; PuntoEndIzq(1,4), PuntoEndIzq(2,4), PuntoEndIzq(3,4)];
     ROTEND_IZQ = [ROTEND_IZQ; PuntoEndIzq(1,1),PuntoEndIzq(1,2),PuntoEndIzq(1,3); PuntoEndIzq(2,1),PuntoEndIzq(2,2),PuntoEndIzq(2,3); PuntoEndIzq(3,1),PuntoEndIzq(3,2),PuntoEndIzq(3,3)];
 
-    pause(0.001);
-    hold off
+%     pause(0.001);
+%     hold off
 end
 
 robotDer = loadrobot("universalUR3");
-TDer = [1 0 0 0.07;0 -0.7071 -0.7071 -0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
+TDer = [-1 0 0 0.07;0 -0.7071 -0.7071 -0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
 setFixedTransform(robotDer.Bodies{1,1}.Joint,TDer);
 configuracionesDer = robotDer.homeConfiguration;
 
@@ -464,32 +465,32 @@ for i=1:1:length(ConfigFinalDer)
     configuracionesDer(5).JointPosition = ConfigFinalDer(i,5);
     configuracionesDer(6).JointPosition = ConfigFinalDer(i,6);
     
-    figure(2);
-    zoom(gca,'on');
-    show(robotDer,configuracionesDer,"Collisions","off");
+%     figure(2);
+%     zoom(gca,'on');
+%     show(robotIzq,configuracionesDer,"Collisions","off");
     
     Codo_Der = getTransform(robotIzq,configuracionesDer,'forearm_link','base_link');
     COD_DER = [COD_DER; Codo_Der(1,4) Codo_Der(2,4) Codo_Der(3,4)];
     
-    camzoom(1.7);
-    hold on
-    show(env{1});
-    show(env{2});
-    show(env{3});
-    show(env{4});
-    hold on
-
-    plot3(VEC_CODO_DER(l,1)+0.07,VEC_CODO_DER(l,2)+0.13,VEC_CODO_DER(l,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
-    plot3(Goal_Der(l,1),Goal_Der(l,2),Goal_Der(l,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
-    hold on
+%     camzoom(1.7);
+%     hold on
+%     show(env{1});
+%     show(env{2});
+%     show(env{3});
+%     show(env{4});
+%     hold on
+% 
+%     plot3(VEC_CODO_DER(l,1)+0.07,VEC_CODO_DER(l,2)+0.13,VEC_CODO_DER(l,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
+%     plot3(Goal_Der(l,1),Goal_Der(l,2),Goal_Der(l,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+%     hold on
 
     PuntoEndDer = getTransform(robotDer,configuracionesDer,'tool0','base_link');
     PuntoDer = [Goal_Der(l,1),Goal_Der(l,2),Goal_Der(l,3)];
     END_DER = [END_DER;PuntoEndDer(1,4),PuntoEndDer(2,4),PuntoEndDer(3,4)];
     ROTEND_DER = [ROTEND_DER;PuntoEndDer(1,1),PuntoEndDer(1,2),PuntoEndDer(1,3);PuntoEndDer(2,1),PuntoEndDer(2,2),PuntoEndDer(2,3);PuntoEndDer(3,1),PuntoEndDer(3,2),PuntoEndDer(3,3)];
 
-    pause(0.001);
-    hold off
+%     pause(0.001);
+%     hold off
 end
 
 

@@ -29,7 +29,7 @@ def URModel(name):
     else:
         print("Model incorrect")
 
-    return Dist_d, Dist_a,Alpha
+    return Dist_d, Dist_a, Alpha
 
 
 
