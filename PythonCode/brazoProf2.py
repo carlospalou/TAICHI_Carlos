@@ -181,7 +181,7 @@ def smooth_rotations(data, sigma=1):
 
     return R1,R2,R3,R4,R5,R6,R7,R8,R9
 
-def smooth_endefector(data, sigma=1):
+def smooth_endeffector(data, sigma=1):
     X = []
     Y = []
     Z = []
@@ -295,7 +295,7 @@ def plot_smoothed_rotations(datosIzq,datosDer,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R
     fig.suptitle("Rotations", fontsize=16)
     plt.show()
 
-def plot_smoothed_EndEfector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
+def plot_smoothed_EndEffector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
     datosIzq = np.array(datosIzq)
     datosDer = np.array(datosDer)   
     fig, axs = plt.subplots(2, 3, figsize=(10,10))
@@ -349,7 +349,7 @@ def plot_smoothed_EndEfector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_D
     axs[5].plot(Z_Der, label='filter')
     axs[5].legend()
 
-    fig.suptitle("End Efector", fontsize=16)
+    fig.suptitle("End Effector", fontsize=16)
     plt.show()
 
 def plot_smoothed_Elbow(elbowIzq,elbowDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
@@ -835,8 +835,8 @@ while True:
                 pointsIzq = np.asarray([Cero_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
                 MatRot_izq = HandPlaneOrientation(pointsIzq , 0) # 0 mano izquierda
 
-                print("Left Rotations")
-                print(MatRot_izq)
+                #print("Left Rotations")
+                #print(MatRot_izq)
 
                 ''' Generate the left values for the UR3 robot'''
                 Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1] # Coge el punto de la muñeca del cuerpo para la matriz de transformacion homogenea
@@ -968,8 +968,8 @@ while True:
                 pointsDer = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
                 MatRot_der = HandPlaneOrientation(pointsDer, 1) # 1 mano derecha
 
-                print("Right Rotations")
-                print(MatRot_der)
+                #print("Right Rotations")
+                #print(MatRot_der)
 
 
                 ''' Generate the right values for the UR3 robot'''
@@ -1036,8 +1036,8 @@ while True:
 L1,L2,L3,L4,L5,L6,L7,L8,L9 = smooth_rotations(DATOSPRE_IZQ,1)
 R1,R2,R3,R4,R5,R6,R7,R8,R9 = smooth_rotations(DATOSPRE_DER,1) 
 
-X_End_Izq,Y_End_Izq,Z_End_Izq = smooth_endefector(DATOSPRE_IZQ,1)
-X_End_Der,Y_End_Der,Z_End_Der = smooth_endefector(DATOSPRE_DER,1)
+X_End_Izq,Y_End_Izq,Z_End_Izq = smooth_endeffector(DATOSPRE_IZQ,1)
+X_End_Der,Y_End_Der,Z_End_Der = smooth_endeffector(DATOSPRE_DER,1)
 
 X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq = smooth_elbow(CORCODOPRE_IZQ,1)
 X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der = smooth_elbow(CORCODOPRE_DER,1)
@@ -1088,30 +1088,30 @@ variable = np.asarray(DATOS_IZQ).shape # Convierte DATOS_IZQ en un array de nump
 DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1)) # Reorganiza el array anterior en uno de 4 columnas con las matrices una debajo de otra
 #print(np.asarray(DATOS_IZQ).shape)
 ModeloIzq = pd.DataFrame(DATOS_IZQ) # Crea una tabla o data frame de Pandas
-ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba4/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
+ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
 
 variable2 = np.asarray(DATOS_DER).shape
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
 ModeloDer = pd.DataFrame(DATOS_DER)
-ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba4/DatosBrazoDerecho.csv',index=False, header=False) 
+ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoDerecho.csv',index=False, header=False) 
 
 # CORCODO_IZQ es una lista donde cada elemento es una matriz 3x1 con las coordenadas del codo izquierdo
 variable3 = np.asarray(CORCODO_IZQ).shape 
 CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1)) # Reorganiza el array anterior en uno de una única columna y tres veces el número de filas que de puntos
 #print(CORCODO_IZQ)
 ModeloCodoIzq = pd.DataFrame(CORCODO_IZQ)
-ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba4/CodoIzquierdo.csv',index=False, header=False)
+ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoIzquierdo.csv',index=False, header=False)
 
 variable4 = np.asarray(CORCODO_DER).shape
 CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
 ModeloCodoDer = pd.DataFrame(CORCODO_DER)
-ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba4/CodoDerecho.csv',index=False, header=False)
+ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoDerecho.csv',index=False, header=False)
 
 ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
-ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba4/EfectorFinalIzquierdo.csv',index=False, header=False)
+ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/EfectorFinalIzquierdo.csv',index=False, header=False)
 
 ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
-ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba4/EfectorFinalDerecho.csv',index=False, header=False)
+ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
 pipeline.stop()
@@ -1119,7 +1119,7 @@ print("Application Closed.")
 
 
 #plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
-#plot_smoothed_EndEfector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
-#plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
+plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
+plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
 
 

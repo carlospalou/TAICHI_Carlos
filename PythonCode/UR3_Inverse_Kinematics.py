@@ -211,20 +211,20 @@ def Cinematica_Inversa(M,name):
 # M = np.transpose(M)
 # print(name)
 # Sol = Cinematica_Inversa(M,name)
-try:
+""" try:
     if launcher == 'matlab':
         M = [M[0:4],M[4:8],M[8:12],M[12:16]]
         M = np.array(M)
         M = np.transpose(M)
         Sol = Cinematica_Inversa(M,name)
 except:
-    print('Using Python')
+    print('Using Python') """
 
 
 
 # ----------------- Values to prove ------------------
 
-#M = np.array([[0,-0.588,0.8090,0.179],[-0.629,0.629,0.457,0.024],[-0.777,-0.509,-0.37,-0.229],[0,0,0,1]]) # [pi/2, pi/3, pi/4, pi/5, pi/5, pi/2];
+M = np.array([[0.0375,   -0.5434,    0.8351,   0.2719],[0.9808,   -0.1319,   -0.1298,   -0.1193],[0.1805,    0.8238,    0.5296,   -0.1921],[0,0,0,1]]) # [pi/2, pi/3, pi/4, pi/5, pi/5, pi/2];
 
 #M = np.array([[0.25,-0.433,0.866,0.161],[-0.433,0.75,0.5,-0.028],[-0.866,-0.500,0,-0.158],[0,0,0,1]]) #[pi/3, pi/3, pi/3, pi/3, pi/3, pi/3];
 
@@ -248,5 +248,5 @@ except:
 
 #M = np.array([[ 0.7591  ,  0.1825 ,  -0.6248  ,  0.1711],[-0.0173  ,  0.9652  ,  0.2609  ,  0.1610],[0.6507  , -0.1872  ,  0.7359  ,  0.2145],[0,0,0,1]]) #[ 1.00319677 -3.81707473  1.58242406  0.82007757  2.30109194  0.51205125]
 
-#Sol = Cinematica_Inversa(M)
-#print(Sol)
+Sol = Cinematica_Inversa(M, name='ur3')
+print(Sol)

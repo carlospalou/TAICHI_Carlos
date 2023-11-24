@@ -67,10 +67,10 @@ svD.Environment = env;
 %% Inverse kinematics solver
 
 % Read the files
-path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/DatosBrazoIzquierdo.csv';
-path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/CodoIzquierdo.csv';
-path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/DatosBrazoDerecho.csv';
-path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba3/CodoDerecho.csv';
+path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/DatosBrazoIzquierdo.csv';
+path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/CodoIzquierdo.csv';
+path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/DatosBrazoDerecho.csv';
+path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba4/CodoDerecho.csv';
 
 MatrixIzqRead = readmatrix(path_izq); % Almacena los datos del .csv en una matriz
 CodoIzqRead = readmatrix(path2_izq);
@@ -82,10 +82,10 @@ iter2_izq = length(CodoIzqRead);
 iter_der = length(MatrixDerRead);
 iter2_der = length(CodoDerRead);
 
-CodoIzqOrganizado = []; % Matriz con los vectores de posicion del codo, tres columnas y tantas filas como vectores
+CodoIzqOrganizado = []; % Matriz con las posiciones del codo del humano, tres columnas y tantas filas como vectores
 CodoDerOrganizado = [];
 
-VEC_CODO_IZQ = []; % Matriz de vectores de posicion del codo, tres columnas y tantas filas como iteraciones del primer bucle for
+VEC_CODO_IZQ = []; % Matriz de vectores de posicion del codo del humano, tres columnas y tantas filas como iteraciones del primer bucle for
 VEC_CODO_DER = [];
 
 MEJORES_IZQ = []; % Guarda los indices de las mejores configuraciones
@@ -135,7 +135,7 @@ for i=1:4:iter_izq % i va de 4 en 4 porque las matrices de transformacion homoge
     check = true;
     
     % Elbow matrix
-    VectorCodoIzq = [CodoIzqOrganizado(k,1), CodoIzqOrganizado(k,2), CodoIzqOrganizado(k,3)]; % Coge uno a uno los vectores de posicion del codo
+    VectorCodoIzq = [CodoIzqOrganizado(k,1), CodoIzqOrganizado(k,2), CodoIzqOrganizado(k,3)]; % Coge una fila de la matriz de posiciones de del codo y la guarda como vector
     VEC_CODO_IZQ = [VEC_CODO_IZQ; VectorCodoIzq]; % Va almacenando los vectores anteriores en una matriz, supongo que esto se hace para que haya el mismo numero de vectores de posicion del codo que de matrices de transformacion homogeneas
 
     % End Efector matrix
@@ -209,13 +209,12 @@ for i=1:4:iter_izq % i va de 4 en 4 porque las matrices de transformacion homoge
 
                 % EE error estimation
                 DistXIzq = distPosition(X_Izq,X_Goal2_Izq); % Calcula la diferencia entre la posicion del EF obtenida de los datos de la camara y de la solucion de IK_UR
-                
                 % Orientation error estimation
                 DistOIzq= distOrientation(Quat_Izq,Quat_Goal2_Izq); % Calcula la diferencia de orientacion del EF
                 
                 % Elbow error estimation
                 DistMIzq = distanceMetric(VectorCodoIzq, X_Wrist2Izq, X_Wrist1Izq, X_Wrist3Izq, X_CodoIzq, X_HombroIzq, Goal_Izq'); 
-               
+                
                 % Wrist error estimation
                 if i == 1 || ~exist('WristOldIzq','var')
                     ErroWristIzq = 0; % Si es la primera iteracion o no hay un valor para la mejor configuracion el error es 0
@@ -276,11 +275,11 @@ for i=1:4:iter_der
         MatrixDerRead(i+2,1) MatrixDerRead(i+2,2) MatrixDerRead(i+2,3) MatrixDerRead(i+2,4);
         MatrixDerRead(i+3,1) MatrixDerRead(i+3,2) MatrixDerRead(i+3,3) MatrixDerRead(i+3,4)];
 
-    MatrixDer2 = inv(TI) * MatrixDer;
+    MatrixDer2 = inv(TD) * MatrixDer;
 
     MatrixDer(1:3,1:3)  = rotz(180) * MatrixDer(1:3,1:3); 
     MatrixDer(1:2,4) = -MatrixDer(1:2,4);
-    MatrixDer = TI * MatrixDer; 
+    MatrixDer = TD * MatrixDer; 
     matrix = MatrixDer; % Para IK_UR
 
     Goal_Der = [Goal_Der; [MatrixDerRead(i,4) MatrixDerRead(i+1,4) MatrixDerRead(i+2,4)]];
@@ -301,15 +300,15 @@ for i=1:4:iter_der
 
         for ii = 1:1:8
             for jj = 1:1:6 
-                configSolnDer(jj).JointPosition = res(ii,jj); 
-            end
-
+                configSolnDer(jj).JointPosition = res(ii,jj);
+            end       
+            
             GoalConfigDer = [configSolnDer(1).JointPosition configSolnDer(2).JointPosition configSolnDer(3).JointPosition configSolnDer(4).JointPosition configSolnDer(5).JointPosition configSolnDer(6).JointPosition];
             [validState,~] = checkCollision(robotModelDer,GoalConfigDer',env,"IgnoreSelfCollision","off","Exhaustive","on","SkippedSelfCollisions","parent");
             if ~any(validState)
 
                 % End efector for the specific configuration
-                EfectorFinalDer = getTransform(robotIzq,configSolnDer,'tool0','base_link'); 
+                EfectorFinalDer = getTransform(robotDer,configSolnDer,'tool0','base_link'); 
                 X_Der = [EfectorFinalDer(1,4) EfectorFinalDer(2,4) EfectorFinalDer(3,4)]; 
                 Rot_Der =[EfectorFinalDer(1,1) EfectorFinalDer(1,2) EfectorFinalDer(1,3); 
                     EfectorFinalDer(2,1) EfectorFinalDer(2,2) EfectorFinalDer(2,3);
@@ -318,30 +317,31 @@ for i=1:4:iter_der
                 Quat_Der = eul2quat(EulerAngles_Der);
 
                 % Wrist 1
-                Wrist1Der = getTransform(robotIzq,configSolnDer,'wrist_1_link','base_link');
+                Wrist1Der = getTransform(robotDer,configSolnDer,'wrist_1_link','base_link');
                 X_Wrist1Der = [Wrist1Der(1,4) Wrist1Der(2,4) Wrist1Der(3,4)]; % Guada las coordenadas de la muñeca
 
                 % Wrist 2
-                Wrist2Der = getTransform(robotIzq,configSolnDer,'wrist_2_link','base_link');
+                Wrist2Der = getTransform(robotDer,configSolnDer,'wrist_2_link','base_link');
                 X_Wrist2Der = [Wrist2Der(1,4) Wrist2Der(2,4) Wrist2Der(3,4)];
 
                 % Wrist 3
-                Wrist3Der = getTransform(robotIzq,configSolnDer,'wrist_3_link','base_link');
+                Wrist3Der = getTransform(robotDer,configSolnDer,'wrist_3_link','base_link');
                 X_Wrist3Der = [Wrist3Der(1,4) Wrist3Der(2,4) Wrist3Der(3,4)];
 
                 % Elbow
-                CodoDer = getTransform(robotIzq,configSolnDer,'forearm_link','base_link');
+                CodoDer = getTransform(robotDer,configSolnDer,'forearm_link','base_link');
                 X_CodoDer = [CodoDer(1,4) CodoDer(2,4) CodoDer(3,4)];
 
                 % Shoulder
-                HombroSalienteDer = getTransform(robotIzq,configSolnDer,'shoulder_link','base_link');
+                HombroSalienteDer = getTransform(robotDer,configSolnDer,'shoulder_link','base_link');
                 X_HombroDer = [HombroSalienteDer(1,4) HombroSalienteDer(2,4) HombroSalienteDer(3,4)];
            
                 % Error estimation
                 DistXDer = distPosition(X_Der,X_Goal2_Der);
                 DistODer = distOrientation(Quat_Der,Quat_Goal2_Der);
                 DistMDer = distanceMetric(VectorCodoDer, X_Wrist2Der, X_Wrist1Der, X_Wrist3Der, X_CodoDer, X_HombroDer, Goal_Der');
-               
+                
+
                 % Wrist error estimation
                 if i == 1 || ~exist('WristOldDer','var')
                     ErroWristDer = 0; 
@@ -355,7 +355,7 @@ for i=1:4:iter_der
                 WristRobotRotDer= rotx(-45)*X_Wrist1Der';
 
                 % Check if it is finished
-                if DistXDer <= 0.05 && DistODer <= 0.16 && ~(CodoRobotRotDer(2)<-0.1 && WristRobotRotDer(2)>CodoRobotRotDer(2)) && DistDer < DistMinDer && configSolnDer(1).JointPosition >= HombroLim(1) && configSolnDer(1).JointPosition <= HombroLim(2) %&& configSolnDer(2).JointPosition >= HombroLim2(1) %&& %configSolnDer(2).JointPosition <= HombroLim2(2)
+                if DistXDer <= 0.05 && DistODer <= 0.16 && ~(CodoRobotRotDer(2)<-0.1 && WristRobotRotDer(2)>CodoRobotRotDer(2)) && DistDer < DistMinDer && configSolnDer(1).JointPosition >= HombroLim(1) && configSolnDer(1).JointPosition <= HombroLim(2) %&& configSolnDer(2).JointPosition >= HombroLim2(1) && configSolnDer(2).JointPosition <= HombroLim2(2)
                     DistMinDer = DistDer;
                     MejorConfigDer = [configSolnDer(1).JointPosition configSolnDer(2).JointPosition configSolnDer(3).JointPosition configSolnDer(4).JointPosition configSolnDer(5).JointPosition configSolnDer(6).JointPosition];
                     mejor_ii = ii;
@@ -395,7 +395,7 @@ Goal_Der =[Goal_Der(:,1)+0.07,Goal_Der(:,2)-0.13,Goal_Der(:,3)+1.15];
 
 %% Plot the movements of the robotics arm respect the human elbow and wrist
 
-COD_IZQ = []; 
+COD_IZQ = []; % Vectores de posicion del codo del robot, sacado de las configuraciones
 COD_DER = [];
 END_IZQ = [];
 END_DER = [];
@@ -468,7 +468,7 @@ for i=1:1:length(ConfigFinalDer)
     zoom(gca,'on');
     show(robotDer,configuracionesDer,"Collisions","off");
     
-    Codo_Der = getTransform(robotIzq,configuracionesDer,'forearm_link','base_link');
+    Codo_Der = getTransform(robotDer,configuracionesDer,'forearm_link','base_link');
     COD_DER = [COD_DER; Codo_Der(1,4) Codo_Der(2,4) Codo_Der(3,4)];
     
     camzoom(1.7);
@@ -503,8 +503,8 @@ xlabel('X (m)')
 ylabel('Y (m)')
 zlabel('Z (m)')
 plot3(END_IZQ(:,1),END_IZQ(:,2),END_IZQ(:,3),'Color','b');
-plot3(Goal2_Izq(1,1),Goal2_Izq(1,2),Goal2_Izq(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
-plot3(Goal2_Izq(length(Goal2_Izq),1),Goal2_Izq(length(Goal2_Izq),2),Goal2_Izq(length(Goal2_Izq),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
+plot3(Goal2_Izq(1,1),Goal2_Izq(1,2),Goal2_Izq(1,3),'o','Color','r','MarkerSize',5,'MarkerFaceColor','r');
+plot3(Goal2_Izq(length(Goal2_Izq),1),Goal2_Izq(length(Goal2_Izq),2),Goal2_Izq(length(Goal2_Izq),3),'o','Color','m','MarkerSize',5,'MarkerFaceColor','m');
 legend('Robot data','Human data','Initial point','Final point')
 xlim([-0.5, 0.5]);
 ylim([-0.5, 0.5]);
@@ -520,14 +520,15 @@ xlabel('X (m)')
 ylabel('Y (m)')
 zlabel('Z (m)')
 plot3(END_DER(:,1),END_DER(:,2),END_DER(:,3),'Color','b');
-plot3(Goal2_Der(1,1),Goal2_Der(1,2),Goal2_Der(1,3),'o','Color','r','MarkerSize',8,'MarkerFaceColor','r');
-plot3(Goal2_Der(length(Goal2_Der),1),Goal2_Der(length(Goal2_Der),2),Goal2_Der(length(Goal2_Der),3),'o','Color','m','MarkerSize',8,'MarkerFaceColor','m');
+plot3(Goal2_Der(1,1),Goal2_Der(1,2),Goal2_Der(1,3),'o','Color','r','MarkerSize',5,'MarkerFaceColor','r');
+plot3(Goal2_Der(length(Goal2_Der),1),Goal2_Der(length(Goal2_Der),2),Goal2_Der(length(Goal2_Der),3),'o','Color','m','MarkerSize',5,'MarkerFaceColor','m');
 legend('Robot data','Human data','Initial point','Final point')
 xlim([-0.5, 0.5]);
 ylim([-0.5, 0.5]);
 zlim([-0.5, 0.5]);
 hold off
 title('Right', 'FontSize', 14)
+
 
 %% Plot the error values of the end efector 
 
