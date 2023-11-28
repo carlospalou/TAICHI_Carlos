@@ -1,6 +1,3 @@
-''' Code created by Adrian Prados and Blanca Lopez, 
-researchers from RoboticsLab, University Carlos III of Madrid, Spain'''
-
 import pyrealsense2 as rs
 import mediapipe as mp
 import cv2
@@ -477,7 +474,7 @@ config.enable_device(device)
 #stream_res_x = 1280
 #stream_res_y = 720
 
-#For better FPS. but worse resolution:
+#For better FPS, but worse resolution:
 
 stream_res_x = 640
 stream_res_y = 480
@@ -634,14 +631,12 @@ while True:
         
         ''' Calculate the rotation of the left shoulder to orientate correctly to the camera'''
         theta = mt.atan2((Hombro_izq_3D[2]-Hombro_der_3D[2]),(Hombro_izq_3D[0]-Hombro_der_3D[0])) #Ángulo entre los hombros en el plano definido por XZ
-        theta = 180 - mt.degrees(theta) 
-
-        #As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
+        theta = 180 - mt.degrees(theta)  # As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
         if theta > 180:
             theta = -1*(360 - theta)
         else:
             theta = theta
-        #images = cv2.putText(images, f"theta: {theta}", org, font, fontScale, color, thickness, cv2.LINE_AA)
+        #images = cv2.putText(images, f"theta: {theta}", org, font, fontScale, (255, 0, 0), thickness, cv2.LINE_AA)
 
 
         '''Generates the rotation for all the points'''
@@ -666,10 +661,6 @@ while True:
         Hombro_izq_Final= [hombro_izq_rotado[0],Hombro_izq_3D[1],hombro_izq_rotado[1]] #Añadimos la componente Y que no ha cambiado 
         Codo_izq_Final= [codo_izq_rotado[0],Codo_izq_3D[1],codo_izq_rotado[1]]
         Muneca_izq_Final= [muneca_izq_rotado[0],Muneca_izq_3D[1],muneca_izq_rotado[1]]
-
-        #print("MunecaFinal : ",Muneca_izq_Final)
-        #print("HombroFinal : ",Hombro_izq_Final)
-        #print("CodoFinal : ",Codo_izq_Final)
 
         Hombro_der_Final= [hombro_der_rotado[0],Hombro_der_3D[1],hombro_der_rotado[1]]
         Codo_der_Final= [codo_der_rotado[0],Codo_der_3D[1],codo_der_rotado[1]]
@@ -825,12 +816,14 @@ while True:
                 Trece_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Trece_izq_X,Trece_izq_Y],Trece_izq_Z)
                 Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
 
-                '''Left hand orientation''' 
+                '''Left hand orientation'''
+                ''' 
                 Points_izq_1 = np.asarray([Cero_izq_3D, Cinco_izq_3D, Trece_izq_3D])
                 Points_izq_2 = np.asarray([Cero_izq_3D, Dos_izq_3D, Nueve_izq_3D])
                 Points_izq_3 = np.asarray([Uno_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
                 Points_izq_4 = np.asarray([Uno_izq_3D, Nueve_izq_3D, Diecisiete_izq_3D])
                 Points_izq = [Points_izq_1, Points_izq_2, Points_izq_3, Points_izq_4]
+                '''
 
                 pointsIzq = np.asarray([Cero_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
                 MatRot_izq = HandPlaneOrientation(pointsIzq , 0) # 0 mano izquierda
@@ -959,11 +952,13 @@ while True:
                 #print(Diecisiete_der_3D)
 
                 '''Right hand orientation'''
+                '''
                 Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
                 Points_der_2 = np.asarray([Cero_der_3D, Dos_der_3D, Nueve_der_3D])
                 Points_der_3 = np.asarray([Uno_der_3D, Cinco_der_3D, Diecisiete_der_3D])
                 Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
                 Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
+                '''
 
                 pointsDer = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
                 MatRot_der = HandPlaneOrientation(pointsDer, 1) # 1 mano derecha
@@ -1119,7 +1114,7 @@ print("Application Closed.")
 
 
 #plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
-plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
+#plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
 plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
 
 
