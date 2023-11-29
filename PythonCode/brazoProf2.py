@@ -1027,7 +1027,7 @@ while True:
                                 MatrizBrazoDerNew[:3,:3] = r2.as_matrix()
                                 MatrizBrazoDerNew[:,3] = [Punto_der[0],Punto_der[1],Punto_der[2],1]
                                 DATOSPRE_DER.append(MatrizBrazoDerNew)
-                                #MatrizBrazoDerNew[3,3] = [0,0,0,1]
+                                
                                 #print("Matriz nueva: {}".format(MatrizBrazoDerNew))
 
                             j = j + 1
@@ -1120,30 +1120,30 @@ variable = np.asarray(DATOS_IZQ).shape # Convierte DATOS_IZQ en un array de nump
 DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1)) # Reorganiza el array anterior en uno de 4 columnas con las matrices una debajo de otra
 #print(np.asarray(DATOS_IZQ).shape)
 ModeloIzq = pd.DataFrame(DATOS_IZQ) # Crea una tabla o data frame de Pandas
-ModeloIzq.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
+ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
 
 variable2 = np.asarray(DATOS_DER).shape
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
 ModeloDer = pd.DataFrame(DATOS_DER)
-ModeloDer.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/DatosBrazoDerecho.csv',index=False, header=False) 
+ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoDerecho.csv',index=False, header=False) 
 
 # CORCODO_IZQ es una lista donde cada elemento es una matriz 3x1 con las coordenadas del codo izquierdo
 variable3 = np.asarray(CORCODO_IZQ).shape 
 CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1)) # Reorganiza el array anterior en uno de una única columna y tres veces el número de filas que de puntos
 #print(CORCODO_IZQ)
 ModeloCodoIzq = pd.DataFrame(CORCODO_IZQ)
-ModeloCodoIzq.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/CodoIzquierdo.csv',index=False, header=False)
+ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoIzquierdo.csv',index=False, header=False)
 
 variable4 = np.asarray(CORCODO_DER).shape
 CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
 ModeloCodoDer = pd.DataFrame(CORCODO_DER)
-ModeloCodoDer.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/CodoDerecho.csv',index=False, header=False)
+ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoDerecho.csv',index=False, header=False)
 
 ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
-ModeloEfectorFinalIzq.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/EfectorFinalIzquierdo.csv',index=False, header=False)
+ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/EfectorFinalIzquierdo.csv',index=False, header=False)
 
 ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
-ModeloEfectorFinalDer.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/EfectorFinalDerecho.csv',index=False, header=False)
+ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
 pipeline.stop()
@@ -1151,7 +1151,7 @@ print("Application Closed.")
 
 
 #plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
-plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
-plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
+#plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
+#plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
 
 
