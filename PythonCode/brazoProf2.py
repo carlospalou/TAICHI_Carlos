@@ -58,12 +58,12 @@ def HandPlaneOrientation(points, hand):
             [x_vec[2],y_vec[2],-1*z_vec[2]]
             ])
 
-        Rox = np.matrix([   # Rotación 90º en x
+        Rox = np.matrix([   #Rotación 90º en x
             [1, 0, 0],
             [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
             [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
             ])   
-        Roz = np.matrix([   # Rotación -90º en z
+        Roz = np.matrix([   #Rotación -90º en z
             [mt.cos(-mt.radians(angle)), -mt.sin(-mt.radians(angle)), 0],
             [mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
             [0, 0, 1]
@@ -81,31 +81,42 @@ def HandPlaneOrientation(points, hand):
             [x_vec[1],y_vec[1],z_vec[1]],
             [x_vec[2],y_vec[2],z_vec[2]]
             ])
-
-        Rox = np.matrix([   # Rotación 90º en x
+        
+        Rox = np.matrix([   #Rotación 90º en x
             [1, 0, 0],
             [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
             [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
             ])
-        Roz = np.matrix([   # Rotación -90º en z
+        '''
+        Roz = np.matrix([   #Rotación -90º en z
             [mt.cos(-mt.radians(angle)), -mt.sin(-mt.radians(angle)), 0],
             [mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
             [0, 0, 1]
             ])
-        Roz2 = np.matrix([   # Rotación 180º en z
+            '''
+        Roz = np.matrix([   #Rotación 90º en z
+            [mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle)), 0],
+            [mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle)), 0],
+            [0, 0, 1]
+            ])
+        '''
+        Roz2 = np.matrix([   #Rotación 180º en z
             [mt.cos(mt.radians(2*angle)), -mt.sin(mt.radians(2*angle)), 0],
             [mt.sin(mt.radians(2*angle)), mt.cos(mt.radians(2*angle)), 0],
             [0, 0, 1]
             ])
-        Rox2 = np.matrix([   # Rotación 90º en x
+            '''
+        '''
+        Rox2 = np.matrix([   #Rotación 180º en x
             [1, 0, 0],
             [0, mt.cos(mt.radians(2*angle)), -mt.sin(mt.radians(2*angle))],
             [0, mt.sin(mt.radians(2*angle)), mt.cos(mt.radians(2*angle))]
             ])
+            '''
         
         Rotacional = np.matmul(Rox,Roz)
-        Rotacional = np.matmul(Rotacional,Roz2)
-        Rotacional = np.matmul(Rotacional,Rox2)
+        #Rotacional = np.matmul(Rotacional,Roz2)
+        #Rotacional = np.matmul(Rotacional,Rox2)
         Rotacional = np.linalg.inv(Rotacional)
         MatRot = np.matmul(Rotacional,Mat)
  
@@ -851,14 +862,20 @@ while True:
                             ''' Correct data is saved'''
                             if h == 1:
                                 h = 0
-                                DATOSPRE_IZQ.append(MatrizBrazoIzq)
+
                                 CORCODOPRE_IZQ.append(PuntoCodo_izq)
                                 #print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
-                                r1 = Rotation.from_matrix(MatRot_izq)
-                                angles1 = r1.as_euler("xyz",degrees=False)
-                                print("Mano izquierda: {}".format(angles1))
+
+                                DATOSPRE_IZQ.append(MatrizBrazoIzq)
+
+                                r1 = Rotation.from_matrix(MatRot_izq) #Devuelve un objeto de rotación representado por la matriz de rotación, usa la función Rotation de scipy.spatial.transform
+                                angles1 = r1.as_euler("xyz",degrees=False) #Representa el objeto mediante ángulos de euler
+                                #print("Mano izquierda radianes: {}".format(angles1))
+                                angles1_d = [mt.degrees(angles1[0]), mt.degrees(angles1[1]), mt.degrees(angles1[2])]
+                                print("Mano izquierda grados: {}".format(angles1_d))
                                 EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
                                 EFECTOR_IZQ.append(EfectorFinal_izq)
+
                             h = h + 1
 
                     datos_izq = datos_izq + 1
@@ -987,25 +1004,32 @@ while True:
                             if j == 1:
                                 j = 0
                                 MatrizBrazoDerNew = np.zeros((4,4))
-                                
+
                                 CORCODOPRE_DER.append(PuntoCodo_der)
                                 #print("Valor de codo derecho",PuntoCodo_der[0,0])
+
                                 r2 = Rotation.from_matrix(MatRot_der)
                                 angles2 = r2.as_euler("xyz",degrees=False)
-                                print("Mano derecha OLD: {}".format(angles2))
-                                angles2[0] = -1*angles2[0]
-                                angles2[1] = -1*angles2[1]
-                                print("Mano derecha NEW: {}".format(angles2))
+                                #print("Mano derecha OLD radianes: {}".format(angles2))
+                                #angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
+                                #print("Mano derecha OLD grados: {}".format(angles2_d))
+                                angles2[1] = -1*angles2[1] #Se invierten los signos de los ángulos en Y y Z, equivalente a rotar 180º en X
+                                angles2[2] = -1*angles2[2]
+                                #print("Mano derecha radianes: {}".format(angles2))
+                                angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
+                                print("Mano derecha grados: {}".format(angles2_d))
                                 EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
                                 EFECTOR_DER.append(EfectorFinal_der)
-                                print("Matriz original: {}".format(MatrizBrazoDer))
+
+                                #print("Matriz original: {}".format(MatrizBrazoDer))
+                                
                                 r2 = Rotation.from_euler('xyz', angles2, degrees=False)
                                 MatrizBrazoDerNew[:3,:3] = r2.as_matrix()
                                 MatrizBrazoDerNew[:,3] = [Punto_der[0],Punto_der[1],Punto_der[2],1]
                                 DATOSPRE_DER.append(MatrizBrazoDerNew)
                                 #MatrizBrazoDerNew[3,3] = [0,0,0,1]
-                                print("Matriz nueva: {}".format(MatrizBrazoDerNew))
-                                
+                                #print("Matriz nueva: {}".format(MatrizBrazoDerNew))
+
                             j = j + 1
 
                     datos_der = datos_der + 1

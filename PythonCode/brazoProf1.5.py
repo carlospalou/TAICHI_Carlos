@@ -867,8 +867,8 @@ while True:
                                 DATOSPRE_IZQ.append(MatrizBrazoIzq)
                                 CORCODOPRE_IZQ.append(PuntoCodo_izq)
                                 print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
-                                r1 = Rotation.from_matrix(MatRot_izq)
-                                angles1 = r1.as_euler("xyz",degrees=False)
+                                r1 = Rotation.from_matrix(MatRot_izq) #Devuelve  un objeto de rotación representado por una matriz de rotación, usa la función Rotation de scipy.spatial.transform
+                                angles1 = r1.as_euler("xyz",degrees=False) #Representa el objeto mediante ángulos de euler
                                 EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
                                 EFECTOR_IZQ.append(EfectorFinal_izq)
                             h = h + 1
