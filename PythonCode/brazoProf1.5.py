@@ -38,7 +38,15 @@ def calculate_angle(a,b,c):
 
 def HandPlaneOrientation(points, hand):
     ''' Obtain the Z vector of the final efector as the ortogonal vector of the hand plane'''
-  
+
+    '''if hand == 0: # Mano izquierda
+        z_vec = np.cross(points[0] - points[2], points[0] - points[1])
+        x_vec = (points[2]-points[1])
+
+    if hand == 1: #Mano derecha
+        z_vec = np.cross(points[0] - points[1], points[0] - points[2])
+        x_vec = (points[1]-points[2])'''
+
     z_vec = np.cross(points[0] - points[2], points[0] - points[1])
     x_vec = (points[2]-points[1])
     z_vec /= np.linalg.norm(z_vec) # Lo divide por su norma para volverlo unitario
@@ -69,47 +77,52 @@ def HandPlaneOrientation(points, hand):
             [0, 0, 1]
             ])
 
-        Rotacional = np.matmul(Rox,Roz)
-        Rotacional = np.linalg.inv(Rotacional)
-        MatRot = np.matmul(Rotacional,Mat)
-    
-        #print(MatRot)
-
-    elif hand == 1:
+    if hand == 1:
         Mat = np.matrix([
-            [x_vec[0],y_vec[0],z_vec[0]], 
-            [x_vec[1],y_vec[1],z_vec[1]],
-            [x_vec[2],y_vec[2],z_vec[2]]
+            [-1*x_vec[0],-1*y_vec[0],z_vec[0]], 
+            [x_vec[1],y_vec[1],-1*z_vec[1]],
+            [x_vec[2],y_vec[2],-1*z_vec[2]]
             ])
-
+            
         Rox = np.matrix([   # Rotación 90º en x
             [1, 0, 0],
             [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
             [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
             ])
-        Roz = np.matrix([   # Rotación -90º en z
+        '''Rox = np.matrix([   # Rotación -90º en x
+            [1, 0, 0],
+            [0, mt.cos(mt.radians(angle)), mt.sin(mt.radians(angle))],
+            [0, -mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
+            ])'''
+        '''Rox = np.matrix([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]           
+            ])'''
+        '''Roy = np.matrix([   # Rotación 180 en y
+            [-mt.cos(mt.radians(180)), 0, mt.sin(mt.radians(180))],
+            [0, 1, 0],
+            [-mt.sin(mt.radians(180)), 0, -mt.cos(mt.radians(180))]
+            ])'''
+        Roz = np.matrix([   # Rotación 90º en z
+            [mt.cos(-mt.radians(angle)), mt.sin(-mt.radians(angle)), 0],
+            [-mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
+            [0, 0, 1]
+            ])
+        '''Roz = np.matrix([   # Rotación -90º en z
             [mt.cos(-mt.radians(angle)), -mt.sin(-mt.radians(angle)), 0],
             [mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
             [0, 0, 1]
-            ])
-        Roz2 = np.matrix([   # Rotación 180º en z
-            [mt.cos(mt.radians(2*angle)), -mt.sin(mt.radians(2*angle)), 0],
-            [mt.sin(mt.radians(2*angle)), mt.cos(mt.radians(2*angle)), 0],
-            [0, 0, 1]
-            ])
-        Rox2 = np.matrix([   # Rotación 90º en x
+            ])'''
+        '''Roz = np.matrix([
             [1, 0, 0],
-            [0, mt.cos(mt.radians(2*angle)), -mt.sin(mt.radians(2*angle))],
-            [0, mt.sin(mt.radians(2*angle)), mt.cos(mt.radians(2*angle))]
-            ])
+            [0, 1, 0],
+            [0, 0, 1]           
+            ])'''
         
-        Rotacional = np.matmul(Rox,Roz)
-        Rotacional = np.matmul(Rotacional,Roz2)
-        Rotacional = np.matmul(Rotacional,Rox2)
-        Rotacional = np.linalg.inv(Rotacional)
-        MatRot = np.matmul(Rotacional,Mat)
- 
-        #print(MatRot)
+    Rotacional = np.matmul(Rox,Roz)
+    Rotacional = np.linalg.inv(Rotacional)
+    MatRot = np.matmul(Rotacional,Mat)
 
     return MatRot
 
@@ -463,7 +476,7 @@ config.enable_device(device)
 #stream_res_x = 1280
 #stream_res_y = 720
 
-#For better FPS. but worse resolution:
+#For better FPS, but worse resolution:
 
 stream_res_x = 640
 stream_res_y = 480
@@ -619,8 +632,8 @@ while True:
 
         
         ''' Calculate the rotation of the left shoulder to orientate correctly to the camera'''
-        theta = mt.atan2((Hombro_izq_3D[2]-Hombro_der_3D[2]),(Hombro_izq_3D[0]-Hombro_der_3D[0])) # Ángulo que forman los hombros con el plano de la cámara
-        theta = 180 - mt.degrees(theta) # As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
+        theta = mt.atan2((Hombro_izq_3D[2]-Hombro_der_3D[2]),(Hombro_izq_3D[0]-Hombro_der_3D[0])) #Ángulo que forman los hombros con el plano de la cámara
+        theta = 180 - mt.degrees(theta)  # As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
         if theta > 180:
             theta = -1*(360 - theta)
         else:
@@ -659,7 +672,7 @@ while True:
         #print(f"MunecaDerFinal: {Muneca_der_Final}")
         #print(f"HombroIzqFinal: {Hombro_izq_Final}")
         #print(f"HombroDerFinal: {Hombro_der_Final}")
-
+        
 
         ''' Reduction factor for the human arm'''
         Human_Humero_izq = abs(mt.dist(Hombro_izq_Final,Codo_izq_Final))
@@ -817,7 +830,7 @@ while True:
                 Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
 
 
-                '''Left hand orientation''' 
+                '''Left hand orientation'''
                 #Points_izq_1 = np.asarray([Cero_izq_3D, Cinco_izq_3D, Trece_izq_3D])
                 #Points_izq_2 = np.asarray([Cero_izq_3D, Dos_izq_3D, Nueve_izq_3D])
                 #Points_izq_3 = np.asarray([Uno_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
@@ -853,10 +866,9 @@ while True:
                                 h = 0
                                 DATOSPRE_IZQ.append(MatrizBrazoIzq)
                                 CORCODOPRE_IZQ.append(PuntoCodo_izq)
-                                #print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
+                                print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
                                 r1 = Rotation.from_matrix(MatRot_izq)
                                 angles1 = r1.as_euler("xyz",degrees=False)
-                                print("Mano izquierda: {}".format(angles1))
                                 EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
                                 EFECTOR_IZQ.append(EfectorFinal_izq)
                             h = h + 1
@@ -953,16 +965,16 @@ while True:
                 #print(Diecisiete_der_3D)
 
                 '''Right hand orientation'''
+                '''
                 Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
                 Points_der_2 = np.asarray([Cero_der_3D, Dos_der_3D, Nueve_der_3D])
                 Points_der_3 = np.asarray([Uno_der_3D, Cinco_der_3D, Diecisiete_der_3D])
                 Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
                 Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
+                '''
 
                 pointsDer = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
-                
                 MatRot_der = HandPlaneOrientation(pointsDer, 1) # 1 mano derecha
-                
 
                 #print("Right Rotations")
                 #print(MatRot_der)
@@ -987,26 +999,13 @@ while True:
                             ''' Correct data is saved'''
                             if j == 1:
                                 j = 0
-                                MatrizBrazoDerNew = np.zeros((4,4))
-                                
+                                DATOSPRE_DER.append(MatrizBrazoDer)
                                 CORCODOPRE_DER.append(PuntoCodo_der)
-                                #print("Valor de codo derecho",PuntoCodo_der[0,0])
+                                print("Valor de codo derecho",PuntoCodo_der[0,0])
                                 r2 = Rotation.from_matrix(MatRot_der)
                                 angles2 = r2.as_euler("xyz",degrees=False)
-                                print("Mano derecha OLD: {}".format(angles2))
-                                angles2[0] = -1*angles2[0]
-                                angles2[1] = -1*angles2[1]
-                                print("Mano derecha NEW: {}".format(angles2))
                                 EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
                                 EFECTOR_DER.append(EfectorFinal_der)
-                                print("Matriz original: {}".format(MatrizBrazoDer))
-                                r2 = Rotation.from_euler('xyz', angles2, degrees=False)
-                                MatrizBrazoDerNew[:3,:3] = r2.as_matrix()
-                                MatrizBrazoDerNew[:,3] = [Punto_der[0],Punto_der[1],Punto_der[2],1]
-                                DATOSPRE_DER.append(MatrizBrazoDerNew)
-                                #MatrizBrazoDerNew[3,3] = [0,0,0,1]
-                                print("Matriz nueva: {}".format(MatrizBrazoDerNew))
-                                
                             j = j + 1
 
                     datos_der = datos_der + 1
@@ -1097,30 +1096,30 @@ variable = np.asarray(DATOS_IZQ).shape # Convierte DATOS_IZQ en un array de nump
 DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1)) # Reorganiza el array anterior en uno de 4 columnas con las matrices una debajo de otra
 #print(np.asarray(DATOS_IZQ).shape)
 ModeloIzq = pd.DataFrame(DATOS_IZQ) # Crea una tabla o data frame de Pandas
-ModeloIzq.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
+ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
 
 variable2 = np.asarray(DATOS_DER).shape
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
 ModeloDer = pd.DataFrame(DATOS_DER)
-ModeloDer.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/DatosBrazoDerecho.csv',index=False, header=False) 
+ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoDerecho.csv',index=False, header=False) 
 
 # CORCODO_IZQ es una lista donde cada elemento es una matriz 3x1 con las coordenadas del codo izquierdo
 variable3 = np.asarray(CORCODO_IZQ).shape 
 CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1)) # Reorganiza el array anterior en uno de una única columna y tres veces el número de filas que de puntos
 #print(CORCODO_IZQ)
 ModeloCodoIzq = pd.DataFrame(CORCODO_IZQ)
-ModeloCodoIzq.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/CodoIzquierdo.csv',index=False, header=False)
+ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoIzquierdo.csv',index=False, header=False)
 
 variable4 = np.asarray(CORCODO_DER).shape
 CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
 ModeloCodoDer = pd.DataFrame(CORCODO_DER)
-ModeloCodoDer.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/CodoDerecho.csv',index=False, header=False)
+ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoDerecho.csv',index=False, header=False)
 
 ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
-ModeloEfectorFinalIzq.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/EfectorFinalIzquierdo.csv',index=False, header=False)
+ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/EfectorFinalIzquierdo.csv',index=False, header=False)
 
 ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
-ModeloEfectorFinalDer.to_csv('/home/nox/Escritorio/CarlosPal/TAICHI_Carlos/HumanData/Prueba7/EfectorFinalDerecho.csv',index=False, header=False)
+ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
 pipeline.stop()
@@ -1128,7 +1127,7 @@ print("Application Closed.")
 
 
 #plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
-plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
+#plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
 plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
 
 
