@@ -952,17 +952,16 @@ while True:
 
                 #print(Diecisiete_der_3D)
 
+
                 '''Right hand orientation'''
-                Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
-                Points_der_2 = np.asarray([Cero_der_3D, Dos_der_3D, Nueve_der_3D])
-                Points_der_3 = np.asarray([Uno_der_3D, Cinco_der_3D, Diecisiete_der_3D])
-                Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
-                Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
+                #Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
+                #Points_der_2 = np.asarray([Cero_der_3D, Dos_der_3D, Nueve_der_3D])
+                #Points_der_3 = np.asarray([Uno_der_3D, Cinco_der_3D, Diecisiete_der_3D])
+                #Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
+                #Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
 
                 pointsDer = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
-                
                 MatRot_der = HandPlaneOrientation(pointsDer, 1) # 1 mano derecha
-                
 
                 #print("Right Rotations")
                 #print(MatRot_der)
