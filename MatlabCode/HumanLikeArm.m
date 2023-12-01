@@ -57,8 +57,8 @@ sv.Environment = env;
 %path = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/DatosBrazoHumano.csv';
 %path2 = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/CodoHumano.csv';
 
-path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/DatosBrazoIzquierdo.csv';
-path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba2/CodoIzquierdo.csv';
+path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoIzquierdo.csv';
+path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoIzquierdo.csv';
 
 matrixRead = readmatrix(path);
 CodoRead = readmatrix(path2);

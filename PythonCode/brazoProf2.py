@@ -38,7 +38,17 @@ def calculate_angle(a,b,c):
 
 def HandPlaneOrientation(points, hand):
     ''' Obtain the Z vector of the final efector as the ortogonal vector of the hand plane'''
-  
+    '''
+    Z = []
+    for point in points:
+        z = np.cross(point[0] - point[2], point[0] - point[1])
+        z /= np.linalg.norm(z)
+        Z.append(z)
+    z_vec = sum(Z)/len(Z)
+    x_vec = (points[2][2]-points[2][1])
+    x_vec /= np.linalg.norm(x_vec)
+    '''
+
     z_vec = np.cross(points[0] - points[2], points[0] - points[1])
     x_vec = (points[2]-points[1])
     z_vec /= np.linalg.norm(z_vec) # Lo divide por su norma para volverlo unitario
@@ -292,6 +302,47 @@ def plot_smoothed_rotations(datosIzq,datosDer,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R
     fig.suptitle("Rotations", fontsize=16)
     plt.show()
 
+def plot_hand_orientations(angulos_izq, angulos_der):
+    angulos_izq = np.array(angulos_izq)
+    angulos_der = np.array(angulos_der)
+    fig, axs = plt.subplots(2, 3, figsize=(10,10))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4)
+    axs = axs.ravel()
+
+    X_Izq = []
+    Y_Izq = []
+    Z_Izq = []
+    X_Der = []
+    Y_Der = []
+    Z_Der = []
+
+    for i in angulos_izq:
+        X_Izq.append(i[0])
+        Y_Izq.append(i[1])
+        Z_Izq.append(i[2])
+    
+    for i in angulos_der:
+        X_Der.append(i[0])
+        Y_Der.append(i[1])
+        Z_Der.append(i[2])
+
+   
+    for i in range(6):
+        if i == 1:
+            axs[i].set_title("Left")
+        elif i == 4:
+            axs[i].set_title("Right")
+
+    axs[0].plot(X_Izq)
+    axs[1].plot(Y_Izq)
+    axs[2].plot(Z_Izq)
+    axs[3].plot(X_Der)
+    axs[4].plot(Y_Der)
+    axs[5].plot(Z_Der)
+
+    fig.suptitle("Hand Orientation", fontsize=16)
+    plt.show()
+
 def plot_smoothed_EndEffector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
     datosIzq = np.array(datosIzq)
     datosDer = np.array(datosDer)   
@@ -417,7 +468,6 @@ fontScale = .5
 color = (0,0,0)
 thickness = 2
 
-
 # ====== DATA ======
 global DATOS_IZQ, DATOS_DER, DATOSPRE_IZQ, DATOSPRE_DER, CORCODO_IZQ, CORCODO_DER, CORCODOPRE_IZQ, CORCODOPRE_DER, EFECTOR_IZQ, EFECTOR_DER
 
@@ -431,6 +481,8 @@ CORCODOPRE_IZQ = []
 CORCODOPRE_DER = []
 EFECTOR_IZQ = []
 EFECTOR_DER = []
+angulos_izq = []
+angulos_der = []
 datos_izq = 0
 datos_der = 0
 h = 0
@@ -463,7 +515,6 @@ pose = mpPose.Pose(min_detection_confidence=0.1)
 
 mpDraw = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
-
 
 # ====== Enable Streams ======
 ''' Activate the stream caracteristics for the RealSense D435i'''
@@ -540,7 +591,7 @@ while True:
     INTR = aligned_depth_frame.profile.as_video_stream_profile().intrinsics
 
     
-    ''' If body is detected check the hands'''
+    ''' If body and hands are detected'''
     if cuerpo.pose_landmarks and results.multi_hand_landmarks:
 
         ''' Draw body lines and save body references'''
@@ -828,15 +879,18 @@ while True:
                 Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
 
 
-                '''Left hand orientation''' 
-                #Points_izq_1 = np.asarray([Cero_izq_3D, Cinco_izq_3D, Trece_izq_3D])
-                #Points_izq_2 = np.asarray([Cero_izq_3D, Dos_izq_3D, Nueve_izq_3D])
-                #Points_izq_3 = np.asarray([Uno_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
-                #Points_izq_4 = np.asarray([Uno_izq_3D, Nueve_izq_3D, Diecisiete_izq_3D])
-                #Points_izq = [Points_izq_1, Points_izq_2, Points_izq_3, Points_izq_4]
+                '''Left hand orientation'''
+                '''
+                Points_izq_1 = np.asarray([Cero_izq_3D, Cinco_izq_3D, Trece_izq_3D])
+                Points_izq_2 = np.asarray([Cero_izq_3D, Dos_izq_3D, Nueve_izq_3D])
+                Points_izq_3 = np.asarray([Uno_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
+                Points_izq_4 = np.asarray([Uno_izq_3D, Nueve_izq_3D, Diecisiete_izq_3D])
+                Points_izq = np.asarray([Points_izq_1, Points_izq_2, Points_izq_3, Points_izq_4])
+                MatRot_izq = HandPlaneOrientation(Points_izq, 0)
+                '''
 
                 pointsIzq = np.asarray([Cero_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
-                MatRot_izq = HandPlaneOrientation(pointsIzq , 0) # 0 mano izquierda
+                MatRot_izq = HandPlaneOrientation(pointsIzq, 0) # 0 mano izquierda
 
                 #print("Left Rotations")
                 #print(MatRot_izq)
@@ -872,6 +926,7 @@ while True:
                                 angles1 = r1.as_euler("xyz",degrees=False) #Representa el objeto mediante ángulos de euler
                                 #print("Mano izquierda radianes: {}".format(angles1))
                                 angles1_d = [mt.degrees(angles1[0]), mt.degrees(angles1[1]), mt.degrees(angles1[2])]
+                                angulos_izq.append(angles1_d)
                                 print("Mano izquierda grados: {}".format(angles1_d))
                                 EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
                                 EFECTOR_IZQ.append(EfectorFinal_izq)
@@ -890,6 +945,7 @@ while True:
             if landmarks_derecha:
 
                 cv2.putText(images, "Right", (int(landmarks_derecha[0][0].x*len(depth_image_flipped[0])), int(landmarks_derecha[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                #print(landmarks_derecha[0][0])
 
                 Cero_der = landmarks_derecha[0][0]  
                 Uno_der = landmarks_derecha[0][1]   
@@ -971,11 +1027,14 @@ while True:
 
 
                 '''Right hand orientation'''
-                #Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
-                #Points_der_2 = np.asarray([Cero_der_3D, Dos_der_3D, Nueve_der_3D])
-                #Points_der_3 = np.asarray([Uno_der_3D, Cinco_der_3D, Diecisiete_der_3D])
-                #Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
-                #Points_der = [Points_der_1, Points_der_2, Points_der_3, Points_der_4]
+                '''
+                Points_der_1 = np.asarray([Cero_der_3D, Cinco_der_3D, Trece_der_3D])
+                Points_der_2 = np.asarray([Cero_der_3D, Dos_der_3D, Nueve_der_3D])
+                Points_der_3 = np.asarray([Uno_der_3D, Cinco_der_3D, Diecisiete_der_3D])
+                Points_der_4 = np.asarray([Uno_der_3D, Nueve_der_3D, Diecisiete_der_3D])
+                Points_der = np.asarray([Points_der_1, Points_der_2, Points_der_3, Points_der_4])
+                MatRot_der = HandPlaneOrientation(Points_der, 1)
+                '''
 
                 pointsDer = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
                 MatRot_der = HandPlaneOrientation(pointsDer, 1) # 1 mano derecha
@@ -1017,6 +1076,7 @@ while True:
                                 angles2[2] = -1*angles2[2]
                                 #print("Mano derecha radianes: {}".format(angles2))
                                 angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
+                                angulos_der.append(angles2_d)
                                 print("Mano derecha grados: {}".format(angles2_d))
                                 EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
                                 EFECTOR_DER.append(EfectorFinal_der)
@@ -1120,30 +1180,30 @@ variable = np.asarray(DATOS_IZQ).shape # Convierte DATOS_IZQ en un array de nump
 DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1)) # Reorganiza el array anterior en uno de 4 columnas con las matrices una debajo de otra
 #print(np.asarray(DATOS_IZQ).shape)
 ModeloIzq = pd.DataFrame(DATOS_IZQ) # Crea una tabla o data frame de Pandas
-ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
+ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
 
 variable2 = np.asarray(DATOS_DER).shape
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
 ModeloDer = pd.DataFrame(DATOS_DER)
-ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoDerecho.csv',index=False, header=False) 
+ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/DatosBrazoDerecho.csv',index=False, header=False) 
 
 # CORCODO_IZQ es una lista donde cada elemento es una matriz 3x1 con las coordenadas del codo izquierdo
 variable3 = np.asarray(CORCODO_IZQ).shape 
 CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1)) # Reorganiza el array anterior en uno de una única columna y tres veces el número de filas que de puntos
 #print(CORCODO_IZQ)
 ModeloCodoIzq = pd.DataFrame(CORCODO_IZQ)
-ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoIzquierdo.csv',index=False, header=False)
+ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/CodoIzquierdo.csv',index=False, header=False)
 
 variable4 = np.asarray(CORCODO_DER).shape
 CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
 ModeloCodoDer = pd.DataFrame(CORCODO_DER)
-ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoDerecho.csv',index=False, header=False)
+ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/CodoDerecho.csv',index=False, header=False)
 
 ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
-ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/EfectorFinalIzquierdo.csv',index=False, header=False)
+ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/EfectorFinalIzquierdo.csv',index=False, header=False)
 
 ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
-ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba5/EfectorFinalDerecho.csv',index=False, header=False)
+ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
 pipeline.stop()
@@ -1153,5 +1213,6 @@ print("Application Closed.")
 #plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 #plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
 #plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
+plot_hand_orientations(angulos_izq, angulos_der)
 
 

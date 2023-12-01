@@ -70,8 +70,8 @@ svD.Environment = env;
 % Read the files
 path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba6/DatosBrazoIzquierdo.csv';
 path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba6/CodoIzquierdo.csv';
-path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba6/DatosBrazoDerecho.csv';
-path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba6/CodoDerecho.csv';
+path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoDerecho.csv';
+path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoDerecho.csv';
 
 MatrixIzqRead = readmatrix(path_izq); % Almacena los datos del .csv en una matriz
 CodoIzqRead = readmatrix(path2_izq);
