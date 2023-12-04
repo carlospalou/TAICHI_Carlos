@@ -97,36 +97,13 @@ def HandPlaneOrientation(points, hand):
             [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
             [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
             ])
-        '''
-        Roz = np.matrix([   #Rotación -90º en z
-            [mt.cos(-mt.radians(angle)), -mt.sin(-mt.radians(angle)), 0],
-            [mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
-            [0, 0, 1]
-            ])
-            '''
         Roz = np.matrix([   #Rotación 90º en z
             [mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle)), 0],
             [mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle)), 0],
             [0, 0, 1]
             ])
-        '''
-        Roz2 = np.matrix([   #Rotación 180º en z
-            [mt.cos(mt.radians(2*angle)), -mt.sin(mt.radians(2*angle)), 0],
-            [mt.sin(mt.radians(2*angle)), mt.cos(mt.radians(2*angle)), 0],
-            [0, 0, 1]
-            ])
-            '''
-        '''
-        Rox2 = np.matrix([   #Rotación 180º en x
-            [1, 0, 0],
-            [0, mt.cos(mt.radians(2*angle)), -mt.sin(mt.radians(2*angle))],
-            [0, mt.sin(mt.radians(2*angle)), mt.cos(mt.radians(2*angle))]
-            ])
-            '''
         
         Rotacional = np.matmul(Rox,Roz)
-        #Rotacional = np.matmul(Rotacional,Roz2)
-        #Rotacional = np.matmul(Rotacional,Rox2)
         Rotacional = np.linalg.inv(Rotacional)
         MatRot = np.matmul(Rotacional,Mat)
  
@@ -512,7 +489,6 @@ desired_solution = [0, 0, 0, 0, 0, 0]
 ''' Link for BodyPose : https://google.github.io/mediapipe/solutions/pose.html'''
 mpPose = mp.solutions.pose
 pose = mpPose.Pose(min_detection_confidence=0.1)
-
 mpDraw = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
@@ -556,6 +532,7 @@ print("Starting to capture images on SN:",device)
 
 
 # ======= Algorithm =========
+
 while True:
     start_time = dt.datetime.today().timestamp()
 

@@ -8,6 +8,7 @@ from scipy.spatial.transform import Rotation
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
+import time
 
 
 ################### Functions ##################################
@@ -269,7 +270,7 @@ def plot_smoothed_rotations(datosIzq,datosDer,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R
     fig.suptitle("Rotations", fontsize=16)
     plt.show()
 
-def plot_hand_orientations(angulos_izq, angulos_der):
+def plot_hand_orientations(angulos_izq,angulos_der,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9):
     angulos_izq = np.array(angulos_izq)
     angulos_der = np.array(angulos_der)
     fig, axs = plt.subplots(2, 3, figsize=(10,10))
@@ -499,6 +500,12 @@ config = rs.config()
 background_removed_color = 153 # Grey color for the background
 
 # ====== Mediapipe ======
+#------- Hands ---------
+''' Link for Hands: https://google.github.io/mediapipe/solutions/hands.html'''
+mpHands = mp.solutions.hands
+hands = mpHands.Hands(min_detection_confidence=0.3) # The confidence can be change for the specific project
+desired_solution = [0, 0, 0, 0, 0, 0] 
+#------- Body --------
 ''' Link for BodyPose : https://google.github.io/mediapipe/solutions/pose.html'''
 mpPose = mp.solutions.pose
 pose = mpPose.Pose(min_detection_confidence=0.1)
@@ -538,6 +545,9 @@ print("Starting to capture images on SN:",device)
 
 
 # ======= Algorithm =========
+
+time.sleep(2)
+
 while True:
     start_time = dt.datetime.today().timestamp()
 
@@ -566,29 +576,30 @@ while True:
     color_images_rgb = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
 
     ''' Process hands and pose estimations'''
-    results = pose.process(color_images_rgb)
+    resultsHands = hands.process(color_images_rgb)
+    resultsPose = pose.process(color_images_rgb)
 
     ''' Load the intrinsics values of the camera RealSense D435i'''
     INTR = aligned_depth_frame.profile.as_video_stream_profile().intrinsics
 
 
-    "If body is detected"
-    if results.pose_world_landmarks:
+    "If body and hands are detected"
+    if resultsPose.pose_world_landmarks and resultsHands.multi_hand_landmarks:
 
-        mpDraw.draw_landmarks(images, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
+        mpDraw.draw_landmarks(images, resultsPose.pose_landmarks, mpPose.POSE_CONNECTIONS)
 
-        Hombro_izq_3D = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER] # Directamente obtenemos los puntos con x, y, z, visibility
+        Hombro_izq_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER] # Directamente obtenemos los puntos con x, y, z, visibility
         Hombro_izq_v.append(Hombro_izq_3D.visibility)
-        Codo_izq_3D = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
+        Codo_izq_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
         Codo_izq_v.append(Codo_izq_3D.visibility)
-        Muneca_izq_3D = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
+        Muneca_izq_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
         Muneca_izq_v.append(Muneca_izq_3D.visibility)
         
-        Hombro_der_3D = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
+        Hombro_der_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
         Hombro_der_v.append(Hombro_der_3D.visibility)
-        Codo_der_3D  = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_ELBOW]
+        Codo_der_3D  = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_ELBOW]
         Codo_der_v.append(Codo_der_3D.visibility)
-        Muneca_der_3D = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
+        Muneca_der_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
         Muneca_der_v.append(Muneca_der_3D.visibility)
 
         #print(f"CodoIzq: {Codo_izq_3D}")
@@ -694,129 +705,224 @@ while True:
 
 
             '''Hand points'''
-            Indice_izq_3D = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_INDEX]
-            Menique_izq_3D = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_PINKY]
-            Muneca_izq = [Muneca_izq_3D.x, Muneca_izq_3D.y, Muneca_izq_3D.z] # Cambiamos la manera en que se guardan las variables
-            Indice_izq = [Indice_izq_3D.x, Indice_izq_3D.y, Indice_izq_3D.z]
-            Menique_izq = [Menique_izq_3D.x, Menique_izq_3D.y, Menique_izq_3D.z]
-
-            cv2.putText(images, "Left", (int(results.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST].x*len(depth_image_flipped[0])), int(results.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
-        
-            Indice_der_3D = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_INDEX]
-            Menique_der_3D  = results.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_PINKY]
-            Muneca_der = [Muneca_der_3D.x, Muneca_der_3D.y, Muneca_der_3D.z]
-            Indice_der = [Indice_der_3D.x, Indice_der_3D.y, Indice_der_3D.z]
-            Menique_der = [Menique_der_3D.x, Menique_der_3D.y, Menique_der_3D.z]
-
-            cv2.putText(images, "Right", (int(results.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST].x*len(depth_image_flipped[0])), int(results.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+            landmarks_izquierda = []
+            landmarks_derecha = []
             
-            #print(f"Muneca_der: {Menique_der}")
-            #print(f"Muneca_der_3D: {Muneca_der_3D}")
+            for hand_num, hand_landmarks in enumerate(resultsHands.multi_hand_landmarks):
+                mpDraw.draw_landmarks(images, hand_landmarks, mpHands.HAND_CONNECTIONS)
+                landmarks = []
+
+                for landmark in hand_landmarks.landmark:
+                    landmarks.append(landmark)
+
+                if resultsHands.multi_handedness[hand_num].classification[0].label == 'Left':
+                    landmarks_izquierda.append(landmarks)
+                else:
+                    landmarks_derecha.append(landmarks)
 
 
-            pointsIzq = np.asarray([Muneca_izq, Indice_izq, Menique_izq])
-            MatRot_izq = HandPlaneOrientation(pointsIzq, 0) # 0 mano izquierda
+            if landmarks_izquierda:
 
-            pointsDer = np.asarray([Muneca_der, Indice_der, Menique_der])
-            MatRot_der = HandPlaneOrientation(pointsDer, 1) # 1 mano derecha
+                cv2.putText(images, "Left", (int(landmarks_izquierda[0][0].x*len(depth_image_flipped[0])), int(landmarks_izquierda[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                
+                Cero_izq = landmarks_izquierda[0][0]  
+                Cinco_izq = landmarks_izquierda[0][5]   
+                Diecisiete_izq = landmarks_izquierda[0][17]  
+
+                ''' X,Y values for the left hand '''        
+                Cero_izq_X = int(Cero_izq.x*len(depth_image_flipped[0]))
+                Cero_izq_Y = int(Cero_izq.y*len(depth_image_flipped))
+                if Cero_izq_X >= len(depth_image_flipped[0]):
+                    Cero_izq_X = len(depth_image_flipped[0]) - 1
+                if Cero_izq_Y>= len(depth_image_flipped):
+                    Cero_izq_Y = len(depth_image_flipped) - 1
+
+                Cinco_izq_X = int(Cinco_izq.x*len(depth_image_flipped[0]))
+                Cinco_izq_Y = int(Cinco_izq.y*len(depth_image_flipped))
+                if Cinco_izq_X >= len(depth_image_flipped[0]):
+                    Cinco_izq_X = len(depth_image_flipped[0]) - 1
+                if Cinco_izq_Y>= len(depth_image_flipped):
+                    Cinco_izq_Y = len(depth_image_flipped) - 1
+                
+                Diecisiete_izq_X = int(Diecisiete_izq.x*len(depth_image_flipped[0]))
+                Diecisiete_izq_Y = int(Diecisiete_izq.y*len(depth_image_flipped))
+                if Diecisiete_izq_X >= len(depth_image_flipped[0]):
+                    Diecisiete_izq_X = len(depth_image_flipped[0]) - 1
+                if Diecisiete_izq_Y>= len(depth_image_flipped):
+                    Diecisiete_izq_Y = len(depth_image_flipped) - 1
+
+                ''' Z values for the left hand (depth)'''
+                Cero_izq_Z = depth_image_flipped[Cero_izq_Y,Cero_izq_X] * depth_scale
+                Cinco_izq_Z = depth_image_flipped[Cinco_izq_Y,Cinco_izq_X] * depth_scale
+                Diecisiete_izq_Z = depth_image_flipped[Diecisiete_izq_Y,Diecisiete_izq_X] * depth_scale 
+
+                '''3D position of the left hand points in meters'''
+                Cero_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_izq_X,Cero_izq_Y],Cero_izq_Z)
+                Cinco_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_izq_X,Cinco_izq_Y],Cinco_izq_Z)
+                Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
+
+
+                '''Left hand orientation'''
+                pointsIzq = np.asarray([Cero_izq_3D, Cinco_izq_3D, Diecisiete_izq_3D])
+                MatRot_izq = HandPlaneOrientation(pointsIzq, 0) # 0 mano izquierda
+
+                #print("Left Rotations")
+                #print(MatRot_izq)
 
             
-            ''' Generate the left values for the UR3 robot'''
-            Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1] # Coge el punto de la muñeca del cuerpo para la matriz de transformacion homogenea
-            #print(Punto_izq)
-            PuntoCodo_izq = np.array([[Robot_Codo_izq[0]],[Robot_Codo_izq[1]],[Robot_Codo_izq[2]]])
+                ''' Generate the left values for the UR3 robot'''
+                Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1] # Coge el punto de la muñeca del cuerpo para la matriz de transformacion homogenea
+                #print(Punto_izq)
+                PuntoCodo_izq = np.array([[Robot_Codo_izq[0]],[Robot_Codo_izq[1]],[Robot_Codo_izq[2]]])
+                
+                try:
+                    MatrizBrazoIzq = np.array([
+                        [round(MatRot_izq[0,0],2),round(MatRot_izq[0,1],2),round(MatRot_izq[0,2],2),Punto_izq[0]],
+                        [round(MatRot_izq[1,0],2),round(MatRot_izq[1,1],2),round(MatRot_izq[1,2],2),Punto_izq[1]],
+                        [round(MatRot_izq[2,0],2),round(MatRot_izq[2,1],2),round(MatRot_izq[2,2],2),Punto_izq[2]],
+                        [0,0,0,1]
+                        ], np.float64)
+                
+                    if datos_izq > 10:
+                        if MatRot_izq[0,0]== "nan" or MatRot_izq[0,1]== "nan" or MatRot_izq[0,2]== "nan":
+                            continue
+                        else:
+                            ''' Correct data is saved'''
+                            if h == 1:
+                                h = 0
+
+                                CORCODOPRE_IZQ.append(PuntoCodo_izq)
+                                #print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
+
+                                DATOSPRE_IZQ.append(MatrizBrazoIzq)
+
+                                r1 = Rotation.from_matrix(MatRot_izq) #Devuelve un objeto de rotación representado por la matriz de rotación, usa la función Rotation de scipy.spatial.transform
+                                angles1 = r1.as_euler("xyz",degrees=False) #Representa el objeto mediante ángulos de euler
+                                #print("Mano izquierda radianes: {}".format(angles1))
+                                angles1_d = [mt.degrees(angles1[0]), mt.degrees(angles1[1]), mt.degrees(angles1[2])]
+                                angulos_izq.append(angles1_d)
+                                print("Mano izquierda grados: {}".format(angles1_d))
+                                EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
+                                EFECTOR_IZQ.append(EfectorFinal_izq)
+
+                            h = h + 1
+
+                    datos_izq = datos_izq + 1
+
+                except ValueError:
+                        print("Mathematical inconsistence")
             
-            try:
-                MatrizBrazoIzq = np.array([
-                    [round(MatRot_izq[0,0],2),round(MatRot_izq[0,1],2),round(MatRot_izq[0,2],2),Punto_izq[0]],
-                    [round(MatRot_izq[1,0],2),round(MatRot_izq[1,1],2),round(MatRot_izq[1,2],2),Punto_izq[1]],
-                    [round(MatRot_izq[2,0],2),round(MatRot_izq[2,1],2),round(MatRot_izq[2,2],2),Punto_izq[2]],
-                    [0,0,0,1]
-                    ], np.float64)
-            
-                if datos_izq > 10:
-                    if MatRot_izq[0,0]== "nan" or MatRot_izq[0,1]== "nan" or MatRot_izq[0,2]== "nan":
-                        continue
-                    else:
-                        ''' Correct data is saved'''
-                        if h == 1:
-                            h = 0
+            else:
+                print("No left hand data")
 
-                            CORCODOPRE_IZQ.append(PuntoCodo_izq)
-                            #print("Valor de codo izquierdo",PuntoCodo_izq[0,0])
+            if landmarks_derecha:
 
-                            DATOSPRE_IZQ.append(MatrizBrazoIzq)
+                cv2.putText(images, "Right", (int(landmarks_derecha[0][0].x*len(depth_image_flipped[0])), int(landmarks_derecha[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                #print(landmarks_derecha[0][0])
 
-                            r1 = Rotation.from_matrix(MatRot_izq) #Devuelve un objeto de rotación representado por la matriz de rotación, usa la función Rotation de scipy.spatial.transform
-                            angles1 = r1.as_euler("xyz",degrees=False) #Representa el objeto mediante ángulos de euler
-                            #print("Mano izquierda radianes: {}".format(angles1))
-                            angles1_d = [mt.degrees(angles1[0]), mt.degrees(angles1[1]), mt.degrees(angles1[2])]
-                            angulos_izq.append(angles1_d)
-                            print("Mano izquierda grados: {}".format(angles1_d))
-                            EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
-                            EFECTOR_IZQ.append(EfectorFinal_izq)
+                Cero_der = landmarks_derecha[0][0]  
+                Cinco_der = landmarks_derecha[0][5]  
+                Diecisiete_der = landmarks_derecha[0][17]  
 
-                        h = h + 1
+                ''' X,Y values for the right hand '''
+                Cero_der_X = int(Cero_der.x*len(depth_image_flipped[0]))
+                Cero_der_Y = int(Cero_der.y*len(depth_image_flipped))
+                if Cero_der_X >= len(depth_image_flipped[0]):
+                    Cero_der_X = len(depth_image_flipped[0]) - 1
+                if Cero_der_Y>= len(depth_image_flipped):
+                    Cero_der_Y = len(depth_image_flipped) - 1
 
-                datos_izq = datos_izq + 1
+                Cinco_der_X = int(Cinco_der.x*len(depth_image_flipped[0]))
+                Cinco_der_Y = int(Cinco_der.y*len(depth_image_flipped))
+                if Cinco_der_X >= len(depth_image_flipped[0]):
+                    Cinco_der_X = len(depth_image_flipped[0]) - 1
+                if Cinco_der_Y>= len(depth_image_flipped):
+                    Cinco_der_Y = len(depth_image_flipped) - 1
 
-            except ValueError:
-                    print("Mathematical inconsistence")
+                Diecisiete_der_X = int(Diecisiete_der.x*len(depth_image_flipped[0]))
+                Diecisiete_der_Y = int(Diecisiete_der.y*len(depth_image_flipped))
+                if Diecisiete_der_X >= len(depth_image_flipped[0]):
+                    Diecisiete_der_X = len(depth_image_flipped[0]) - 1
+                if Diecisiete_der_Y>= len(depth_image_flipped):
+                    Diecisiete_der_Y = len(depth_image_flipped) - 1
+
+                ''' Z values for the right hand (depth)'''
+                Cero_der_Z = depth_image_flipped[Cero_der_Y,Cero_der_X] * depth_scale
+                Cinco_der_Z = depth_image_flipped[Cinco_der_Y,Cinco_der_X] * depth_scale
+                Diecisiete_der_Z = depth_image_flipped[Diecisiete_der_Y,Diecisiete_der_X] * depth_scale
+
+                '''3D position of the lright hand points in meters'''
+                Cero_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_der_X,Cero_der_Y],Cero_der_Z)
+                Cinco_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_der_X,Cinco_der_Y],Cinco_der_Z)
+                Diecisiete_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Diecisiete_der_Z)
+
+                #print(Diecisiete_der_3D)
+
+
+                '''Right hand orientation'''
+                pointsDer = np.asarray([Cero_der_3D, Cinco_der_3D, Diecisiete_der_3D])
+                MatRot_der = HandPlaneOrientation(pointsDer, 1) # 1 mano derecha
+
+                #print("Right Rotations")
+                #print(MatRot_der)
 
                 
-            ''' Generate the right values for the UR3 robot'''
-            Punto_der = [Robot_Muneca_der[0],Robot_Muneca_der[1],Robot_Muneca_der[2],1]
-            PuntoCodo_der= np.array([[Robot_Codo_der[0]],[Robot_Codo_der[1]],[Robot_Codo_der[2]]])
-            
-            try:
-                MatrizBrazoDer = np.array([
-                    [round(MatRot_der[0,0],2),round(MatRot_der[0,1],2),round(MatRot_der[0,2],2),Punto_der[0]],
-                    [round(MatRot_der[1,0],2),round(MatRot_der[1,1],2),round(MatRot_der[1,2],2),Punto_der[1]],
-                    [round(MatRot_der[2,0],2),round(MatRot_der[2,1],2),round(MatRot_der[2,2],2),Punto_der[2]],
-                    [0,0,0,1]
-                    ], np.float64)
-            
-                if datos_der > 10:
-                    if MatRot_der[0,0]== "nan" or MatRot_der[0,1]== "nan" or MatRot_der[0,2]== "nan":
-                        continue
-                    else:
-                        ''' Correct data is saved'''
-                        if j == 1:
-                            j = 0
-                            MatrizBrazoDerNew = np.zeros((4,4))
+                ''' Generate the right values for the UR3 robot'''
+                Punto_der = [Robot_Muneca_der[0],Robot_Muneca_der[1],Robot_Muneca_der[2],1]
+                PuntoCodo_der= np.array([[Robot_Codo_der[0]],[Robot_Codo_der[1]],[Robot_Codo_der[2]]])
+                
+                try:
+                    MatrizBrazoDer = np.array([
+                        [round(MatRot_der[0,0],2),round(MatRot_der[0,1],2),round(MatRot_der[0,2],2),Punto_der[0]],
+                        [round(MatRot_der[1,0],2),round(MatRot_der[1,1],2),round(MatRot_der[1,2],2),Punto_der[1]],
+                        [round(MatRot_der[2,0],2),round(MatRot_der[2,1],2),round(MatRot_der[2,2],2),Punto_der[2]],
+                        [0,0,0,1]
+                        ], np.float64)
+                
+                    if datos_der > 10:
+                        if MatRot_der[0,0]== "nan" or MatRot_der[0,1]== "nan" or MatRot_der[0,2]== "nan":
+                            continue
+                        else:
+                            ''' Correct data is saved'''
+                            if j == 1:
+                                j = 0
+                                MatrizBrazoDerNew = np.zeros((4,4))
 
-                            CORCODOPRE_DER.append(PuntoCodo_der)
-                            #print("Valor de codo derecho",PuntoCodo_der[0,0])
+                                CORCODOPRE_DER.append(PuntoCodo_der)
+                                #print("Valor de codo derecho",PuntoCodo_der[0,0])
 
-                            r2 = Rotation.from_matrix(MatRot_der)
-                            angles2 = r2.as_euler("xyz",degrees=False)
-                            #print("Mano derecha OLD radianes: {}".format(angles2))
-                            #angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
-                            #print("Mano derecha OLD grados: {}".format(angles2_d))
-                            angles2[1] = -1*angles2[1] #Se invierten los signos de los ángulos en Y y Z, equivalente a rotar 180º en X
-                            angles2[2] = -1*angles2[2]
-                            #print("Mano derecha radianes: {}".format(angles2))
-                            angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
-                            angulos_der.append(angles2_d)
-                            print("Mano derecha grados: {}".format(angles2_d))
-                            EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
-                            EFECTOR_DER.append(EfectorFinal_der)
+                                r2 = Rotation.from_matrix(MatRot_der)
+                                angles2 = r2.as_euler("xyz",degrees=False)
+                                #print("Mano derecha OLD radianes: {}".format(angles2))
+                                #angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
+                                #print("Mano derecha OLD grados: {}".format(angles2_d))
+                                angles2[1] = -1*angles2[1] #Se invierten los signos de los ángulos en Y y Z, equivalente a rotar 180º en X
+                                angles2[2] = -1*angles2[2]
+                                #print("Mano derecha radianes: {}".format(angles2))
+                                angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
+                                angulos_der.append(angles2_d)
+                                print("Mano derecha grados: {}".format(angles2_d))
+                                EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
+                                EFECTOR_DER.append(EfectorFinal_der)
 
-                            #print("Matriz original: {}".format(MatrizBrazoDer))
-                            
-                            r2 = Rotation.from_euler('xyz', angles2, degrees=False)
-                            MatrizBrazoDerNew[:3,:3] = r2.as_matrix()
-                            MatrizBrazoDerNew[:,3] = [Punto_der[0],Punto_der[1],Punto_der[2],1]
-                            DATOSPRE_DER.append(MatrizBrazoDerNew)
-                            
-                            #print("Matriz nueva: {}".format(MatrizBrazoDerNew))
+                                #print("Matriz original: {}".format(MatrizBrazoDer))
+                                
+                                r2 = Rotation.from_euler('xyz', angles2, degrees=False)
+                                MatrizBrazoDerNew[:3,:3] = r2.as_matrix()
+                                MatrizBrazoDerNew[:,3] = [Punto_der[0],Punto_der[1],Punto_der[2],1]
+                                DATOSPRE_DER.append(MatrizBrazoDerNew)
+                                
+                                #print("Matriz nueva: {}".format(MatrizBrazoDerNew))
 
-                        j = j + 1
+                            j = j + 1
 
-                datos_der = datos_der + 1
+                    datos_der = datos_der + 1
 
-            except ValueError:
-                print("Mathematical inconsistence")
+                except ValueError:
+                    print("Mathematical inconsistence")
+
+            else:
+                print("No right hand data")
 
         else:
             print("Incorrect arm value")
@@ -933,5 +1039,5 @@ print("Application Closed.")
 #plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 #plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
 #plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
-plot_hand_orientations(angulos_izq, angulos_der)
+#plot_hand_orientations(angulos_izq,angulos_der,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 #plot_visibility(Hombro_izq_v,Hombro_der_v,Codo_izq_v,Codo_der_v,Muneca_izq_v,Muneca_der_v)

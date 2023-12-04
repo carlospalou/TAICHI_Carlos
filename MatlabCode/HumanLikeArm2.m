@@ -6,8 +6,10 @@ robotIzq = loadrobot("universalUR3"); % Usa una funcion de Robotics System Toolb
 robotDer = loadrobot("universalUR3");
 TI = [1 0 0 0;0 0.7071 0.7071 0;0 -0.7071 0.7071 0;0 0 0 1]; % Matriz del brazo izquierdo solo rotacion, sin desplazamiento, rotacion de -45º en X
 TD = [1 0 0 0;0 0.7071 -0.7071 0;0 0.7071 0.7071 0;0 0 0 1]; % Matriz del brazo izquierdo, rotacion 45º en X 
-HombroLim = [-3.14,3.14];
-HombroLim2 = [-2, 1.5];
+HombroLimIzq = [-3.14, 3.14];
+HombroLim2Izq = [-2, 1.5];
+HombroLimDer = [0, 2*3.14];
+HombroLim2Der = [-2+3.14, 1.5+3.14];
 weights = [2, 3.42, 1.26, 0.8, 0.8, 0.35];
 configSolnIzq = robotIzq.homeConfiguration; % La configuracion predeterminada del robot
 configSolnDer = robotDer.homeConfiguration;
@@ -63,15 +65,15 @@ svD.Environment = env;
 % show(env{3});
 % show(env{4});
 % hold off
-
+% pause();
 
 %% Inverse kinematics solver
 
 % Read the files
-path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba6/DatosBrazoIzquierdo.csv';
-path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba6/CodoIzquierdo.csv';
-path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba6/DatosBrazoDerecho.csv';
-path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba6/CodoDerecho.csv';
+path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/DatosBrazoIzquierdo.csv';
+path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/CodoIzquierdo.csv';
+path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/DatosBrazoDerecho.csv';
+path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/CodoDerecho.csv';
 
 MatrixIzqRead = readmatrix(path_izq); % Almacena los datos del .csv en una matriz
 CodoIzqRead = readmatrix(path2_izq);
@@ -229,16 +231,8 @@ for i=1:4:iter_izq % i va de 4 en 4 porque las matrices de transformacion homoge
                 CodoRotIzq = rotx(45)*X_CodoIzq';
                 WristRotIzq= rotx(45)*X_Wrist1Izq';
 
-%                 disp("+++++")
-%                 disp(X_Goal2_Izq)
-%                 dist(X_Izq)
-%                 disp("------")
-                %disp(DistXIzq)
-                %dist(DistOIzq)
-                
-
                 % Check if it is finished
-                if DistXIzq <= 0.05 && DistOIzq <= 0.16 && ~(CodoRotIzq(2) < -0.1 && WristRotIzq(2) > CodoRotIzq(2)) && DistIzq < DistMinIzq && configSolnIzq(1).JointPosition >= HombroLim(1) && configSolnIzq(1).JointPosition <= HombroLim(2) && configSolnIzq(2).JointPosition >= HombroLim2(1) && configSolnIzq(2).JointPosition <= HombroLim2(2)
+                if DistXIzq <= 0.05 && DistOIzq <= 0.16 && ~(CodoRotIzq(2) < -0.1 && WristRotIzq(2) > CodoRotIzq(2)) && DistIzq < DistMinIzq && configSolnIzq(1).JointPosition >= HombroLimIzq(1) && configSolnIzq(1).JointPosition <= HombroLimIzq(2) && configSolnIzq(2).JointPosition >= HombroLim2Izq(1) && configSolnIzq(2).JointPosition <= HombroLim2Izq(2)
                     DistMinIzq = DistIzq; % Si se cumplen los limites, que incluyen que la distancia sea menor, pasa a ser la distancia minima
                     MejorConfigIzq = [configSolnIzq(1).JointPosition configSolnIzq(2).JointPosition configSolnIzq(3).JointPosition configSolnIzq(4).JointPosition configSolnIzq(5).JointPosition configSolnIzq(6).JointPosition];
                     mejor_ii = ii; % Se guarda la mejor configuracion
@@ -267,8 +261,8 @@ end
 
 k=0;
 
-% ##################################### PARTE DERECHA
-% #####################################
+% PARTE DERECHA
+
 for i=1:4:iter_der
     k = k+1;
     DistMinDer = 10000000;
@@ -290,11 +284,6 @@ for i=1:4:iter_der
 
     MatrixDer(1:3,1:3)  = rotz(180) * MatrixDer(1:3,1:3);
     MatrixDer(1:2,4) = -MatrixDer(1:2,4);
-%     MatrixDer2(1,4) = -MatrixDer2(1,4);
-%     aux1 = MatrixDer2(2,4);
-%     aux2= MatrixDer2(3,4);
-%     MatrixDer2(2,4) = aux2;
-%     MatrixDer2(3,4) = aux1;
     MatrixDer = TD * MatrixDer; 
     matrix = MatrixDer; % Para IK_UR
 
@@ -307,7 +296,6 @@ for i=1:4:iter_der
         MatrixDer2(3,1) MatrixDer2(3,2) MatrixDer2(3,3)];
     EulerAngles_Goal2_Der = rotm2eul(Rot_Goal2_Der); 
     Quat_Goal2_Der = eul2quat(EulerAngles_Goal2_Der);
-%     Quat_Goal2_Der(1:3)=-1* Quat_Goal2_Der(1:3);
     
     disp("------------- NEW RIGHT ARM ITERATION -------------")
     disp(k)
@@ -326,19 +314,6 @@ for i=1:4:iter_der
 
                 % End efector for the specific configuration
                 EfectorFinalDer = getTransform(robotDer,configSolnDer,'tool0','base_link');
-%                 TDer = [-1 0 0 0.07;0 -0.7071 -0.7071 -0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
-%                 setFixedTransform(robotDer.Bodies{1,1}.Joint,TDer);
-%                 show(robotDer,configSolnDer,"Collisions","off");
-
-%                 camzoom(1.7);
-%                 hold on
-%                 show(env{1});
-%                 show(env{2});
-%                 show(env{3});
-%                 show(env{4});
-%                 hold on                            
-                
-                
                 X_Der = [EfectorFinalDer(1,4) EfectorFinalDer(2,4) EfectorFinalDer(3,4)]; 
                 Rot_Der =[EfectorFinalDer(1,1) EfectorFinalDer(1,2) EfectorFinalDer(1,3); 
                     EfectorFinalDer(2,1) EfectorFinalDer(2,2) EfectorFinalDer(2,3);
@@ -367,18 +342,11 @@ for i=1:4:iter_der
                 X_HombroDer = [HombroSalienteDer(1,4) HombroSalienteDer(2,4) HombroSalienteDer(3,4)];
            
                 % Error estimation
-                %X_Goal2_Der(1,1)=X_Goal2_Der(1,1)*-1;
                 DistXDer = distPosition(X_Der,X_Goal2_Der);
                 DistODer = distOrientation(Quat_Der,Quat_Goal2_Der);
                 %disp(DistODer)
                 DistMDer = distanceMetric(VectorCodoDer, X_Wrist2Der, X_Wrist1Der, X_Wrist3Der, X_CodoDer, X_HombroDer, Goal_Der');
                 %disp(DistMDer)
-                
-%                 disp("+++++")
-%                 disp(X_Goal2_Der)
-%                 dist(X_Der)%                 disp("*******")
-%                 disp("------")
-%                 pause();
 
                 % Wrist error estimation
                 if i == 1 || ~exist('WristOldDer','var')
@@ -390,12 +358,10 @@ for i=1:4:iter_der
                 DistDer = real(WX*DistXDer + WO*DistODer + WH*DistMDer + ErroWristDer);
                 
                 CodoRobotRotDer = rotx(-45)*X_CodoDer';
-                WristRobotRotDer= rotx(-45)*X_Wrist1Der';
-                
-                
+                WristRobotRotDer= rotx(-45)*X_Wrist1Der';                
 
                 % Check if it is finished
-                if DistXDer <= 0.05 && DistODer <= 0.16 && ~(CodoRobotRotDer(2)<-0.1 && WristRobotRotDer(2)>CodoRobotRotDer(2)) && DistDer < DistMinDer && configSolnDer(1).JointPosition >= HombroLim(1) && configSolnDer(1).JointPosition <= HombroLim(2) && configSolnDer(2).JointPosition >= HombroLim2(1) && configSolnDer(2).JointPosition <= HombroLim2(2)
+                if DistXDer <= 0.05 && DistODer <= 0.16 && ~(CodoRobotRotDer(2) > 0.1 && WristRobotRotDer(2) < CodoRobotRotDer(2)) && DistDer < DistMinDer && configSolnDer(1).JointPosition >= HombroLimDer(1) && configSolnDer(1).JointPosition <= HombroLimDer(2) && configSolnDer(2).JointPosition >= HombroLim2Der(1) && configSolnDer(2).JointPosition <= HombroLim2Der(2)
                     DistMinDer = DistDer;
                     MejorConfigDer = [configSolnDer(1).JointPosition configSolnDer(2).JointPosition configSolnDer(3).JointPosition configSolnDer(4).JointPosition configSolnDer(5).JointPosition configSolnDer(6).JointPosition];
                     mejor_ii = ii;
@@ -418,7 +384,6 @@ for i=1:4:iter_der
 
     catch
         disp('Wrong IK value')
-%         pause();
     end   
     
 end
@@ -431,7 +396,6 @@ Goal_Izq =[Goal_Izq(:,1)+0.07,Goal_Izq(:,2)+0.13,Goal_Izq(:,3)+1.15];
 Goal_Der(PEORES_DER,:) = [];
 Goal2_Der(PEORES_DER,:) = [];
 Goal_Der =[Goal_Der(:,1)+0.07,Goal_Der(:,2)-0.13,Goal_Der(:,3)+1.15];
-
 
 
 %% Plot the movements of the robotics arm respect the human elbow and wrist
@@ -530,6 +494,7 @@ for i=1:1:length(ConfigFinalDer)
     ROTEND_DER = [ROTEND_DER;PuntoEndDer(1,1),PuntoEndDer(1,2),PuntoEndDer(1,3);PuntoEndDer(2,1),PuntoEndDer(2,2),PuntoEndDer(2,3);PuntoEndDer(3,1),PuntoEndDer(3,2),PuntoEndDer(3,3)];
 
     hold off
+    %pause();
 end
 
 
@@ -546,9 +511,6 @@ plot3(END_IZQ(:,1),END_IZQ(:,2),END_IZQ(:,3),'Color','b');
 plot3(Goal2_Izq(1,1),Goal2_Izq(1,2),Goal2_Izq(1,3),'o','Color','r','MarkerSize',5,'MarkerFaceColor','r');
 plot3(Goal2_Izq(length(Goal2_Izq),1),Goal2_Izq(length(Goal2_Izq),2),Goal2_Izq(length(Goal2_Izq),3),'o','Color','m','MarkerSize',5,'MarkerFaceColor','m');
 legend('Robot data','Human data','Initial point','Final point')
-xlim([-0.5, 0.5]);
-ylim([-0.5, 0.5]);
-zlim([-0.5, 0.5]);
 hold off
 title('Left', 'FontSize', 14)
 
@@ -563,9 +525,6 @@ plot3(END_DER(:,1),END_DER(:,2),END_DER(:,3),'Color','b');
 plot3(Goal2_Der(1,1),Goal2_Der(1,2),Goal2_Der(1,3),'o','Color','r','MarkerSize',5,'MarkerFaceColor','r');
 plot3(Goal2_Der(length(Goal2_Der),1),Goal2_Der(length(Goal2_Der),2),Goal2_Der(length(Goal2_Der),3),'o','Color','m','MarkerSize',5,'MarkerFaceColor','m');
 legend('Robot data','Human data','Initial point','Final point')
-xlim([-0.5, 0.5]);
-ylim([-0.5, 0.5]);
-zlim([-0.5, 0.5]);
 hold off
 title('Right', 'FontSize', 14)
 
