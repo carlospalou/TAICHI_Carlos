@@ -652,7 +652,7 @@ while True:
         #Muneca_der_3D = (X aumenta hacia derecha, Y aumenta hacia abajo, Z aumenta hacia atrás) Sistema coordenadas cámara
 
         #print(f"CodoIzq: {Codo_izq_3D}")
-        #print(f"MunecaIzq: {Muneca_izq_3D}")
+        print(f"MunecaIzq: {Muneca_izq_3D}")
         #print(f"HombroIzq: {Hombro_izq_3D}")
         #print(f"HombroDer: {Hombro_der_3D}")
 
@@ -855,6 +855,8 @@ while True:
                 Trece_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Trece_izq_X,Trece_izq_Y],Trece_izq_Z)
                 Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
 
+                print(f"Cero_izq: {Cero_izq_3D}")
+
 
                 '''Left hand orientation'''
                 '''
@@ -904,7 +906,7 @@ while True:
                                 #print("Mano izquierda radianes: {}".format(angles1))
                                 angles1_d = [mt.degrees(angles1[0]), mt.degrees(angles1[1]), mt.degrees(angles1[2])]
                                 angulos_izq.append(angles1_d)
-                                print("Mano izquierda grados: {}".format(angles1_d))
+                                #print("Mano izquierda grados: {}".format(angles1_d))
                                 EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
                                 EFECTOR_IZQ.append(EfectorFinal_izq)
 
@@ -956,7 +958,7 @@ while True:
 
                 Cinco_der_X = int(Cinco_der.x*len(depth_image_flipped[0]))
                 Cinco_der_Y = int(Cinco_der.y*len(depth_image_flipped))
-                if Cinco_der_X >= len(depth_image_flipped[0]):
+                if Cinco_der_X>= len(depth_image_flipped[0]):
                     Cinco_der_X = len(depth_image_flipped[0]) - 1
                 if Cinco_der_Y>= len(depth_image_flipped):
                     Cinco_der_Y = len(depth_image_flipped) - 1
@@ -1000,7 +1002,7 @@ while True:
                 Trece_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Trece_der_X,Trece_der_Y],Trece_der_Z)
                 Diecisiete_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Diecisiete_der_Z)
 
-                #print(Diecisiete_der_3D)
+                #print(f"Cero der: {Cero_der_3D}")
 
 
                 '''Right hand orientation'''
@@ -1054,7 +1056,7 @@ while True:
                                 #print("Mano derecha radianes: {}".format(angles2))
                                 angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
                                 angulos_der.append(angles2_d)
-                                print("Mano derecha grados: {}".format(angles2_d))
+                                #print("Mano derecha grados: {}".format(angles2_d))
                                 EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
                                 EFECTOR_DER.append(EfectorFinal_der)
 
@@ -1190,6 +1192,6 @@ print("Application Closed.")
 #plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 #plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
 #plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
-plot_hand_orientations(angulos_izq, angulos_der)
+#plot_hand_orientations(angulos_izq, angulos_der)
 
 

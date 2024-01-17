@@ -584,7 +584,7 @@ while True:
 
 
     "If body and hands are detected"
-    if resultsPose.pose_world_landmarks and resultsHands.multi_hand_landmarks:
+    if resultsPose.pose_world_landmarks and resultsHands.multi_hand_world_landmarks:
 
         mpDraw.draw_landmarks(images, resultsPose.pose_landmarks, mpPose.POSE_CONNECTIONS)
 
@@ -603,7 +603,8 @@ while True:
         Muneca_der_v.append(Muneca_der_3D.visibility)
 
         #print(f"CodoIzq: {Codo_izq_3D}")
-        #print(f"MunecaIzq: {Muneca_izq_3D}")
+        print(f"MunecaIzq: {Muneca_izq_3D}")
+        print(f"MunecaDer: {Muneca_der_3D}")
         #print(f"HombroIzq: {Hombro_izq_3D}")
         #print(f"HombroDer: {Hombro_der_3D}")
 
@@ -704,7 +705,9 @@ while True:
             Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RH_factor_der,(Translation[1] - Muneca_der_Final[0])*RH_factor_der,(Translation[2] - Muneca_der_Final[1])*RH_factor_der]
 
 
-            '''Hand points'''
+            #cv2.putText(images, "Right", (int(Muneca_der_3D.x), int(Muneca_der_3D.y)), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
+            '''Labels'''
             landmarks_izquierda = []
             landmarks_derecha = []
             
@@ -720,46 +723,36 @@ while True:
                 else:
                     landmarks_derecha.append(landmarks)
 
+            '''Hand points'''
+            world_landmarks_izquierda = []
+            world_landmarks_derecha = []
+            
+            for hand_num, hand_landmarks in enumerate(resultsHands.multi_hand_world_landmarks):
+                landmarks = []
 
-            if landmarks_izquierda:
+                for landmark in hand_landmarks.landmark:
+                    landmarks.append(landmark)
+
+                if resultsHands.multi_handedness[hand_num].classification[0].label == 'Left':
+                    world_landmarks_izquierda.append(landmarks)
+                else:
+                    world_landmarks_derecha.append(landmarks)
+
+            if world_landmarks_izquierda:
 
                 cv2.putText(images, "Left", (int(landmarks_izquierda[0][0].x*len(depth_image_flipped[0])), int(landmarks_izquierda[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
                 
-                Cero_izq = landmarks_izquierda[0][0]  
-                Cinco_izq = landmarks_izquierda[0][5]   
-                Diecisiete_izq = landmarks_izquierda[0][17]  
-
-                ''' X,Y values for the left hand '''        
-                Cero_izq_X = int(Cero_izq.x*len(depth_image_flipped[0]))
-                Cero_izq_Y = int(Cero_izq.y*len(depth_image_flipped))
-                if Cero_izq_X >= len(depth_image_flipped[0]):
-                    Cero_izq_X = len(depth_image_flipped[0]) - 1
-                if Cero_izq_Y>= len(depth_image_flipped):
-                    Cero_izq_Y = len(depth_image_flipped) - 1
-
-                Cinco_izq_X = int(Cinco_izq.x*len(depth_image_flipped[0]))
-                Cinco_izq_Y = int(Cinco_izq.y*len(depth_image_flipped))
-                if Cinco_izq_X >= len(depth_image_flipped[0]):
-                    Cinco_izq_X = len(depth_image_flipped[0]) - 1
-                if Cinco_izq_Y>= len(depth_image_flipped):
-                    Cinco_izq_Y = len(depth_image_flipped) - 1
+                Cero_izq = world_landmarks_izquierda[0][0]  
+                Cinco_izq = world_landmarks_izquierda[0][5]   
+                Diecisiete_izq = world_landmarks_izquierda[0][17]
                 
-                Diecisiete_izq_X = int(Diecisiete_izq.x*len(depth_image_flipped[0]))
-                Diecisiete_izq_Y = int(Diecisiete_izq.y*len(depth_image_flipped))
-                if Diecisiete_izq_X >= len(depth_image_flipped[0]):
-                    Diecisiete_izq_X = len(depth_image_flipped[0]) - 1
-                if Diecisiete_izq_Y>= len(depth_image_flipped):
-                    Diecisiete_izq_Y = len(depth_image_flipped) - 1
+                Cero_izq_3D = [Cero_izq.x, Cero_izq.y, Cero_izq.z]
+                Cinco_izq_3D = [Cinco_izq.x, Cinco_izq.y, Cinco_izq.z]
+                Diecisiete_izq_3D = [Diecisiete_izq.x, Diecisiete_izq.y, Diecisiete_izq.z]
 
-                ''' Z values for the left hand (depth)'''
-                Cero_izq_Z = depth_image_flipped[Cero_izq_Y,Cero_izq_X] * depth_scale
-                Cinco_izq_Z = depth_image_flipped[Cinco_izq_Y,Cinco_izq_X] * depth_scale
-                Diecisiete_izq_Z = depth_image_flipped[Diecisiete_izq_Y,Diecisiete_izq_X] * depth_scale 
+                #cv2.putText(images, "Origin", (int(Cero_izq.x) + int(Muneca_izq_3D.x*len(depth_image_flipped[0])), int(Cero_izq.y) + int(Muneca_izq_3D.y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
-                '''3D position of the left hand points in meters'''
-                Cero_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_izq_X,Cero_izq_Y],Cero_izq_Z)
-                Cinco_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_izq_X,Cinco_izq_Y],Cinco_izq_Z)
-                Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
+                #print(f"Cero_izq: {Cero_izq_3D}")
 
 
                 '''Left hand orientation'''
@@ -801,7 +794,7 @@ while True:
                                 #print("Mano izquierda radianes: {}".format(angles1))
                                 angles1_d = [mt.degrees(angles1[0]), mt.degrees(angles1[1]), mt.degrees(angles1[2])]
                                 angulos_izq.append(angles1_d)
-                                print("Mano izquierda grados: {}".format(angles1_d))
+                                #print("Mano izquierda grados: {}".format(angles1_d))
                                 EfectorFinal_izq = [MatrizBrazoIzq[0,3],MatrizBrazoIzq[1,3],MatrizBrazoIzq[2,3],angles1[0],angles1[1],angles1[2]]
                                 EFECTOR_IZQ.append(EfectorFinal_izq)
 
@@ -815,48 +808,19 @@ while True:
             else:
                 print("No left hand data")
 
-            if landmarks_derecha:
+            if world_landmarks_derecha:
 
                 cv2.putText(images, "Right", (int(landmarks_derecha[0][0].x*len(depth_image_flipped[0])), int(landmarks_derecha[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
-                #print(landmarks_derecha[0][0])
 
-                Cero_der = landmarks_derecha[0][0]  
-                Cinco_der = landmarks_derecha[0][5]  
-                Diecisiete_der = landmarks_derecha[0][17]  
+                Cero_der = world_landmarks_derecha[0][0]  
+                Cinco_der = world_landmarks_derecha[0][5]  
+                Diecisiete_der = world_landmarks_derecha[0][17]  
 
-                ''' X,Y values for the right hand '''
-                Cero_der_X = int(Cero_der.x*len(depth_image_flipped[0]))
-                Cero_der_Y = int(Cero_der.y*len(depth_image_flipped))
-                if Cero_der_X >= len(depth_image_flipped[0]):
-                    Cero_der_X = len(depth_image_flipped[0]) - 1
-                if Cero_der_Y>= len(depth_image_flipped):
-                    Cero_der_Y = len(depth_image_flipped) - 1
+                Cero_der_3D = [Cero_der.x, Cero_der.y, Cero_der.z]
+                Cinco_der_3D = [Cinco_der.x, Cinco_der.y, Cinco_der.z]
+                Diecisiete_der_3D = [Diecisiete_der.x, Diecisiete_der.y, Diecisiete_der.z]
 
-                Cinco_der_X = int(Cinco_der.x*len(depth_image_flipped[0]))
-                Cinco_der_Y = int(Cinco_der.y*len(depth_image_flipped))
-                if Cinco_der_X >= len(depth_image_flipped[0]):
-                    Cinco_der_X = len(depth_image_flipped[0]) - 1
-                if Cinco_der_Y>= len(depth_image_flipped):
-                    Cinco_der_Y = len(depth_image_flipped) - 1
-
-                Diecisiete_der_X = int(Diecisiete_der.x*len(depth_image_flipped[0]))
-                Diecisiete_der_Y = int(Diecisiete_der.y*len(depth_image_flipped))
-                if Diecisiete_der_X >= len(depth_image_flipped[0]):
-                    Diecisiete_der_X = len(depth_image_flipped[0]) - 1
-                if Diecisiete_der_Y>= len(depth_image_flipped):
-                    Diecisiete_der_Y = len(depth_image_flipped) - 1
-
-                ''' Z values for the right hand (depth)'''
-                Cero_der_Z = depth_image_flipped[Cero_der_Y,Cero_der_X] * depth_scale
-                Cinco_der_Z = depth_image_flipped[Cinco_der_Y,Cinco_der_X] * depth_scale
-                Diecisiete_der_Z = depth_image_flipped[Diecisiete_der_Y,Diecisiete_der_X] * depth_scale
-
-                '''3D position of the lright hand points in meters'''
-                Cero_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cero_der_X,Cero_der_Y],Cero_der_Z)
-                Cinco_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Cinco_der_X,Cinco_der_Y],Cinco_der_Z)
-                Diecisiete_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_der_X,Diecisiete_der_Y],Diecisiete_der_Z)
-
-                #print(Diecisiete_der_3D)
+                #print(f"Cero der: {Cero_der_3D}")
 
 
                 '''Right hand orientation'''
@@ -901,7 +865,7 @@ while True:
                                 #print("Mano derecha radianes: {}".format(angles2))
                                 angles2_d = [mt.degrees(angles2[0]), mt.degrees(angles2[1]), mt.degrees(angles2[2])]
                                 angulos_der.append(angles2_d)
-                                print("Mano derecha grados: {}".format(angles2_d))
+                                #print("Mano derecha grados: {}".format(angles2_d))
                                 EfectorFinal_der = [MatrizBrazoDer[0,3],MatrizBrazoDer[1,3],MatrizBrazoDer[2,3],angles2[0],angles2[1],angles2[2]]
                                 EFECTOR_DER.append(EfectorFinal_der)
 

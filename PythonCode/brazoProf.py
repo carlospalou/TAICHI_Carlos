@@ -562,6 +562,7 @@ while True:
             punto = [robotMuneca[0],robotMuneca[1],robotMuneca[2],1]
             puntoCodo = np.array([[robotCodo[0]],[robotCodo[1]],[robotCodo[2]]])
             #print(punto)
+
             try:
                 MatrizBrazo = np.array([
                     [round(MatRot[0,0],2),round(MatRot[0,1],2),round(MatRot[0,2],2),punto[0]],
@@ -664,5 +665,5 @@ ModeloEfectorFinal.to_csv('/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntig
 print("Application Closing")
 pipeline.stop()
 print("Application Closed.")
-plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+#plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 
