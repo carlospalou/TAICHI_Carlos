@@ -40,12 +40,10 @@ def calculate_angle(a,b,c):
 def HandPlaneOrientation(points, hand):
     z_vec = np.cross(points[0] - points[2], points[0] - points[1])
     x_vec = (points[2]-points[1])
-    z_vec /= np.linalg.norm(z_vec)
+    z_vec /= np.linalg.norm(z_vec) 
     x_vec /= np.linalg.norm(x_vec)
     y_vec = np.cross(z_vec,x_vec)
     y_vec /= np.linalg.norm(y_vec)
-
-    #print(z_vec, hand) 
 
     angle = 90
 
@@ -57,12 +55,12 @@ def HandPlaneOrientation(points, hand):
             [x_vec[2],y_vec[2],-1*z_vec[2]]
             ])
 
-        Rox = np.matrix([   #Rotación 90º en x
+        Rox = np.matrix([   #90º rotation in x
             [1, 0, 0],
             [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
             [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
             ])   
-        Roz = np.matrix([   #Rotación -90º en z
+        Roz = np.matrix([   #-90º rotation in z
             [mt.cos(-mt.radians(angle)), -mt.sin(-mt.radians(angle)), 0],
             [mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
             [0, 0, 1]
@@ -71,9 +69,7 @@ def HandPlaneOrientation(points, hand):
         Rotacional = np.matmul(Rox,Roz)
         Rotacional = np.linalg.inv(Rotacional)
         MatRot = np.matmul(Rotacional,Mat)
-    
-        #print(MatRot)
-
+   
     elif hand == 1:
         Mat = np.matrix([
             [x_vec[0],y_vec[0],z_vec[0]], 
@@ -81,12 +77,12 @@ def HandPlaneOrientation(points, hand):
             [x_vec[2],y_vec[2],z_vec[2]]
             ])
         
-        Rox = np.matrix([   #Rotación 90º en x
+        Rox = np.matrix([   #90º rotation in x
             [1, 0, 0],
             [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
             [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
             ])
-        Roz = np.matrix([   #Rotación 90º en z
+        Roz = np.matrix([   #90º rotation in  z
             [mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle)), 0],
             [mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle)), 0],
             [0, 0, 1]
@@ -95,8 +91,6 @@ def HandPlaneOrientation(points, hand):
         Rotacional = np.matmul(Rox,Roz)
         Rotacional = np.linalg.inv(Rotacional)
         MatRot = np.matmul(Rotacional,Mat)
- 
-        #print(MatRot)
 
     return MatRot
 
@@ -268,7 +262,7 @@ def plot_smoothed_rotations(datosIzq,datosDer,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R
     fig.suptitle("Rotations", fontsize=16)
     plt.show()
 
-def plot_hand_orientations(angulos_izq, angulos_der):
+def plot_hand_orientations(angulos_izq,angulos_der,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9):
     angulos_izq = np.array(angulos_izq)
     angulos_der = np.array(angulos_der)
     fig, axs = plt.subplots(2, 3, figsize=(10,10))
@@ -311,7 +305,7 @@ def plot_hand_orientations(angulos_izq, angulos_der):
 
 def plot_smoothed_EndEffector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
     datosIzq = np.array(datosIzq)
-    datosDer = np.array(datosDer)   
+    datosDer = np.array(datosDer)  
     fig, axs = plt.subplots(2, 3, figsize=(10,10))
     fig.subplots_adjust(hspace=0.4, wspace=0.4)
     axs = axs.ravel()
@@ -344,26 +338,26 @@ def plot_smoothed_EndEffector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_
             axs[i].set_title("Row {}".format(i-3))
 
     axs[0].plot(X_Izq_r,label='raw')
-    axs[0].plot(X_Izq, label='filter')
+    axs[0].plot(X_Izq,label='filter')
     axs[0].legend()
     axs[1].plot(Y_Izq_r,label='raw')
-    axs[1].plot(Y_Izq, label='filter')
+    axs[1].plot(Y_Izq,label='filter')
     axs[1].legend()
     axs[2].plot(Z_Izq_r,label='raw')
-    axs[2].plot(Z_Izq, label='filter')
+    axs[2].plot(Z_Izq,label='filter')
     axs[2].legend()
 
     axs[3].plot(X_Der_r,label='raw')
-    axs[3].plot(X_Der, label='filter')
+    axs[3].plot(X_Der,label='filter')
     axs[3].legend()
     axs[4].plot(Y_Der_r,label='raw')
-    axs[4].plot(Y_Der, label='filter')
+    axs[4].plot(Y_Der,label='filter')
     axs[4].legend()
     axs[5].plot(Z_Der_r,label='raw')
-    axs[5].plot(Z_Der, label='filter')
+    axs[5].plot(Z_Der,label='filter')
     axs[5].legend()
 
-    fig.suptitle("End Effector", fontsize=16)
+    fig.suptitle("End Effector",fontsize=16)
     plt.show()
 
 def plot_smoothed_Elbow(elbowIzq,elbowDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
@@ -401,26 +395,48 @@ def plot_smoothed_Elbow(elbowIzq,elbowDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
             axs[i].set_title("Row {}".format(i-3))
 
     axs[0].plot(X_Izq_r,label='raw')
-    axs[0].plot(X_Izq, label='filter')
+    axs[0].plot(X_Izq,label='filter')
     axs[0].legend()
     axs[1].plot(Y_Izq_r,label='raw')
-    axs[1].plot(Y_Izq, label='filter')
+    axs[1].plot(Y_Izq,label='filter')
     axs[1].legend()
     axs[2].plot(Z_Izq_r,label='raw')
-    axs[2].plot(Z_Izq, label='filter')
+    axs[2].plot(Z_Izq,label='filter')
     axs[2].legend()
     
     axs[3].plot(X_Der_r,label='raw')
-    axs[3].plot(X_Der, label='filter')
+    axs[3].plot(X_Der,label='filter')
     axs[3].legend()
     axs[4].plot(Y_Der_r,label='raw')
-    axs[4].plot(Y_Der, label='filter')
+    axs[4].plot(Y_Der,label='filter')
     axs[4].legend()
     axs[5].plot(Z_Der_r,label='raw')
-    axs[5].plot(Z_Der, label='filter')
+    axs[5].plot(Z_Der,label='filter')
     axs[5].legend()
 
-    fig.suptitle("Elbow", fontsize=16)
+    fig.suptitle("Elbow",fontsize=16)
+    plt.show()
+
+def plot_visibility(Hombro_izq_v,Hombro_der_v,Codo_izq_v,Codo_der_v,Muneca_izq_v,Muneca_der_v):
+    fig, axs = plt.subplots(1, 3, figsize=(10,5))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4)
+    axs = axs.ravel()
+
+    axs[0].set_title("End Effector")
+    axs[1].set_title("Elbow")
+    axs[2].set_title("Shoulder")
+
+    axs[0].plot(Muneca_izq_v,label='left')
+    axs[0].plot(Muneca_der_v,label='right')
+    axs[0].legend()
+    axs[1].plot(Codo_izq_v,label='left')
+    axs[1].plot(Codo_der_v,label='right')
+    axs[1].legend()
+    axs[2].plot(Hombro_izq_v,label='left')
+    axs[2].plot(Hombro_der_v,label='right')
+    axs[2].legend()
+
+    fig.suptitle("Visibility",fontsize=16)
     plt.show()
 
 
@@ -447,8 +463,16 @@ CORCODOPRE_IZQ = []
 CORCODOPRE_DER = []
 EFECTOR_IZQ = []
 EFECTOR_DER = []
+
+Hombro_izq_v = []
+Codo_izq_v = []
+Muneca_izq_v = []
+Hombro_der_v = []
+Codo_der_v = []
+Muneca_der_v = []
 angulos_izq = []
 angulos_der = []
+
 datos_izq = 0
 datos_der = 0
 h = 0
@@ -468,7 +492,6 @@ config = rs.config()
 background_removed_color = 153 # Grey color for the background
 
 # ====== Mediapipe ======
-''' Characteristics for hands and pose tracking'''
 #------- Hands ---------
 ''' Link for Hands: https://google.github.io/mediapipe/solutions/hands.html'''
 mpHands = mp.solutions.hands
@@ -484,13 +507,6 @@ mp_drawing_styles = mp.solutions.drawing_styles
 # ====== Enable Streams ======
 ''' Activate the stream caracteristics for the RealSense D435i'''
 config.enable_device(device)
-
-#For worse FPS, but better resolution:
-
-#stream_res_x = 1280
-#stream_res_y = 720
-
-#For better FPS. but worse resolution:
 
 stream_res_x = 640
 stream_res_y = 480
@@ -519,13 +535,14 @@ print("Configuration Successful for SN", device)
 # ====== Get and process images ====== 
 print("Starting to capture images on SN:",device)
 
+
 # ======= Algorithm =========
 
 time.sleep(2)
 start_time = time.time()
 
 while True:
-
+    
     current_time = time.time() 
     elapsed_time = current_time - start_time
 
@@ -554,105 +571,42 @@ while True:
     color_images_rgb = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
 
     ''' Process hands and pose estimations'''
-    results = hands.process(color_images_rgb)
-    cuerpo = pose.process(color_images_rgb)
+    resultsHands = hands.process(color_images_rgb)
+    resultsPose = pose.process(color_images_rgb)
 
     ''' Load the intrinsics values of the camera RealSense D435i'''
     INTR = aligned_depth_frame.profile.as_video_stream_profile().intrinsics
 
-    
-    ''' If body and hands are detected'''
-    if cuerpo.pose_landmarks and results.multi_hand_landmarks:
 
-        ''' Draw body lines and save body references'''
-        mpDraw.draw_landmarks(images, cuerpo.pose_landmarks, mpPose.POSE_CONNECTIONS)
+    "If body and hands are detected"
+    if resultsPose.pose_world_landmarks and resultsHands.multi_hand_world_landmarks:
 
-        hombro_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER] #Izquierda es derecha y viceversa porque la imagen está invertida
-        codo_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
-        muneca_izq = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
+        mpDraw.draw_landmarks(images, resultsPose.pose_landmarks, mpPose.POSE_CONNECTIONS)
+
+        Hombro_izq_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_SHOULDER] # Directamente obtenemos los puntos con x, y, z, visibility
+        Hombro_izq_v.append(Hombro_izq_3D.visibility)
+        Codo_izq_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_ELBOW]
+        Codo_izq_v.append(Codo_izq_3D.visibility)
+        Muneca_izq_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.RIGHT_WRIST]
+        Muneca_izq_v.append(Muneca_izq_3D.visibility)
         
-        hombro_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
-        codo_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_ELBOW]
-        muneca_der = cuerpo.pose_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
-
-        ''' Calculate the angle of the elbow (just to check)'''
-        angulo_izq = calculate_angle([hombro_izq.x,hombro_izq.y], [codo_izq.x,codo_izq.y], [muneca_izq.x,muneca_izq.y])
-        angulo_der = calculate_angle([hombro_der.x,hombro_der.y], [codo_der.x,codo_der.y], [muneca_der.x,muneca_der.y])
-
-        # ----------- Human Shoulders ---------    
-        hombro_izq_X = int(hombro_izq.x*len(depth_image_flipped[0])) #Lo multiplica por el tamaño de la imagen pq la coordenada esta normalizada entre 0 y 1
-        hombro_izq_Y = int(hombro_izq.y*len(depth_image_flipped))    #Coordenadas de hombro en la imagen
-        if hombro_izq_X  >= len(depth_image_flipped[0]):
-            hombro_izq_X  = len(depth_image_flipped[0]) - 1
-        if hombro_izq_Y >= len(depth_image_flipped):
-            hombro_izq_Y = len(depth_image_flipped) - 1
-        
-        hombro_der_X = int(hombro_der.x*len(depth_image_flipped[0])) 
-        hombro_der_Y = int(hombro_der.y*len(depth_image_flipped))
-        if hombro_der_X  >= len(depth_image_flipped[0]):
-            hombro_der_X  = len(depth_image_flipped[0]) - 1
-        if hombro_der_Y >= len(depth_image_flipped):
-            hombro_der_Y = len(depth_image_flipped) - 1
-
-        #--------- Human Elbows --------
-        codo_izq_X = int(codo_izq.x*len(depth_image_flipped[0]))
-        codo_izq_Y = int(codo_izq.y*len(depth_image_flipped))
-        if codo_izq_X >= len(depth_image_flipped[0]):
-            codo_izq_X = len(depth_image_flipped[0]) - 1
-        if codo_izq_Y>= len(depth_image_flipped):
-            codo_izq_Y = len(depth_image_flipped) - 1
-        
-        codo_der_X = int(codo_der.x*len(depth_image_flipped[0])) 
-        codo_der_Y = int(codo_der.y*len(depth_image_flipped))
-        if codo_der_X >= len(depth_image_flipped[0]):
-            codo_der_X = len(depth_image_flipped[0]) - 1
-        if codo_der_Y>= len(depth_image_flipped):
-            codo_der_Y = len(depth_image_flipped) - 1
-
-        # ----------- Human Wrists --------
-        muneca_izq_X = int(muneca_izq.x*len(depth_image_flipped[0]))
-        muneca_izq_Y = int(muneca_izq.y*len(depth_image_flipped))
-        if muneca_izq_X >= len(depth_image_flipped[0]):
-            muneca_izq_X = len(depth_image_flipped[0]) - 1
-        if muneca_izq_Y >= len(depth_image_flipped):
-            muneca_izq_Y = len(depth_image_flipped) - 1
-        
-        muneca_der_X = int(muneca_der.x*len(depth_image_flipped[0]))  
-        muneca_der_Y = int(muneca_der.y*len(depth_image_flipped))
-        if muneca_der_X >= len(depth_image_flipped[0]):
-            muneca_der_X = len(depth_image_flipped[0]) - 1
-        if muneca_der_Y >= len(depth_image_flipped):
-            muneca_der_Y = len(depth_image_flipped) - 1
-
-        ''' Z values for the elbow, wrist and shoulder'''        
-        hombro_izq_Z = depth_image_flipped[hombro_izq_Y,hombro_izq_X] * depth_scale #Profundidad en metros del hombro, codo y muñeca
-        codo_izq_Z = depth_image_flipped[codo_izq_Y,codo_izq_X] * depth_scale 
-        muneca_izq_Z = depth_image_flipped[muneca_izq_Y,muneca_izq_X] * depth_scale 
-
-        hombro_der_Z = depth_image_flipped[hombro_der_Y,hombro_der_X] * depth_scale 
-        codo_der_Z = depth_image_flipped[codo_der_Y,codo_der_X] * depth_scale 
-        muneca_der_Z = depth_image_flipped[muneca_der_Y,muneca_der_X] * depth_scale 
-
-        '''Values of the different studied points in meters'''
-        #La función calcula las corrdenadas en el espacio del hombro, codo y muñeca a partir de los parámetros intrínsecos, las coordenadas en la imagen y la profundidad
-        Hombro_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[hombro_izq_X,hombro_izq_Y],hombro_izq_Z)
-        Codo_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[codo_izq_X,codo_izq_Y],codo_izq_Z)
-        Muneca_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[muneca_izq_X,muneca_izq_Y],muneca_izq_Z)
-
-        Hombro_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[hombro_der_X,hombro_der_Y],hombro_der_Z)
-        Codo_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[codo_der_X,codo_der_Y],codo_der_Z)
-        Muneca_der_3D = rs.rs2_deproject_pixel_to_point(INTR,[muneca_der_X,muneca_der_Y],muneca_der_Z)
-        #Muneca_der_3D = (X aumenta hacia derecha, Y aumenta hacia abajo, Z aumenta hacia atrás) Sistema coordenadas cámara
+        Hombro_der_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_SHOULDER]
+        Hombro_der_v.append(Hombro_der_3D.visibility)
+        Codo_der_3D  = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_ELBOW]
+        Codo_der_v.append(Codo_der_3D.visibility)
+        Muneca_der_3D = resultsPose.pose_world_landmarks.landmark[mpPose.PoseLandmark.LEFT_WRIST]
+        Muneca_der_v.append(Muneca_der_3D.visibility)
 
         #print(f"CodoIzq: {Codo_izq_3D}")
-        print(f"MunecaIzq: {Muneca_izq_3D}")
+        #print(f"MunecaIzq: {Muneca_izq_3D}")
+        #print(f"MunecaDer: {Muneca_der_3D}")
         #print(f"HombroIzq: {Hombro_izq_3D}")
         #print(f"HombroDer: {Hombro_der_3D}")
 
-        
+
         ''' Calculate the rotation of the left shoulder to orientate correctly to the camera'''
-        theta = mt.atan2((Hombro_izq_3D[2]-Hombro_der_3D[2]),(Hombro_izq_3D[0]-Hombro_der_3D[0])) # Ángulo que forman los hombros con el plano de la cámara
-        theta = 180 - mt.degrees(theta) # As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
+        theta = mt.atan2((Hombro_izq_3D.z-Hombro_der_3D.z),(Hombro_izq_3D.x-Hombro_der_3D.x))
+        theta = 180 - mt.degrees(theta)  # As we rotate using the Y axis, if rigth shoulder is the nearest to te camera, the angle is negative
         if theta > 180:
             theta = -1*(360 - theta)
         else:
@@ -661,17 +615,17 @@ while True:
 
 
         '''Generates the rotation for all the points'''
-        Pivote = (Hombro_der_3D[0],Hombro_der_3D[2]) #Rotamos sobre el hombro derecho
+        Pivote = (Hombro_der_3D.x,Hombro_der_3D.z) 
         
-        rotar_hombro_izq = (Hombro_izq_3D[0],Hombro_izq_3D[2]) #Coordenadas X y Z de los puntos a rotar
-        rotar_codo_izq = (Codo_izq_3D[0],Codo_izq_3D[2])
-        rotar_muneca_izq= (Muneca_izq_3D[0],Muneca_izq_3D[2])
+        rotar_hombro_izq = (Hombro_izq_3D.x,Hombro_izq_3D.z) 
+        rotar_codo_izq = (Codo_izq_3D.x,Codo_izq_3D.z)
+        rotar_muneca_izq= (Muneca_izq_3D.x,Muneca_izq_3D.z)
 
-        rotar_hombro_der = (Hombro_der_3D[0],Hombro_der_3D[2])
-        rotar_codo_der = (Codo_der_3D[0],Codo_der_3D[2])
-        rotar_muneca_der= (Muneca_der_3D[0],Muneca_der_3D[2])
+        rotar_hombro_der = (Hombro_der_3D.x,Hombro_der_3D.z)
+        rotar_codo_der = (Codo_der_3D.x,Codo_der_3D.z)
+        rotar_muneca_der= (Muneca_der_3D.x,Muneca_der_3D.z)
         
-        hombro_izq_rotado = rotateY(Pivote,rotar_hombro_izq,mt.radians(theta)) #Rotación de los puntos en el plano XZ con la función rotateY
+        hombro_izq_rotado = rotateY(Pivote,rotar_hombro_izq,mt.radians(theta)) 
         codo_izq_rotado = rotateY(Pivote,rotar_codo_izq,mt.radians(theta))
         muneca_izq_rotado = rotateY(Pivote,rotar_muneca_izq,mt.radians(theta))
 
@@ -679,13 +633,13 @@ while True:
         codo_der_rotado = rotateY(Pivote,rotar_codo_der,mt.radians(theta))
         muneca_der_rotado = rotateY(Pivote,rotar_muneca_der,mt.radians(theta))
 
-        Hombro_izq_Final= [hombro_izq_rotado[0],Hombro_izq_3D[1],hombro_izq_rotado[1]] #Añadimos la componente Y que no ha cambiado 
-        Codo_izq_Final= [codo_izq_rotado[0],Codo_izq_3D[1],codo_izq_rotado[1]]
-        Muneca_izq_Final= [muneca_izq_rotado[0],Muneca_izq_3D[1],muneca_izq_rotado[1]]
+        Hombro_izq_Final= [hombro_izq_rotado[0],Hombro_izq_3D.y,hombro_izq_rotado[1]]  
+        Codo_izq_Final= [codo_izq_rotado[0],Codo_izq_3D.y,codo_izq_rotado[1]]
+        Muneca_izq_Final= [muneca_izq_rotado[0],Muneca_izq_3D.y,muneca_izq_rotado[1]]
 
-        Hombro_der_Final= [hombro_der_rotado[0],Hombro_der_3D[1],hombro_der_rotado[1]]
-        Codo_der_Final= [codo_der_rotado[0],Codo_der_3D[1],codo_der_rotado[1]]
-        Muneca_der_Final= [muneca_der_rotado[0],Muneca_der_3D[1],muneca_der_rotado[1]]
+        Hombro_der_Final= [hombro_der_rotado[0],Hombro_der_3D.y,hombro_der_rotado[1]]
+        Codo_der_Final= [codo_der_rotado[0],Codo_der_3D.y,codo_der_rotado[1]]
+        Muneca_der_Final= [muneca_der_rotado[0],Muneca_der_3D.y,muneca_der_rotado[1]]
 
         #print(f"CodoIzqFinal: {Codo_izq_Final}")
         #print(f"MunecaDerFinal: {Muneca_der_Final}")
@@ -736,33 +690,46 @@ while True:
             Robot_Hombro_izq = [(Translation[0] - Hombro_izq_Final[2]),(Translation[1] - Hombro_izq_Final[0]),(Translation[2]- Hombro_izq_Final[1])]
             Robot_Codo_izq = [(Translation[0] - Codo_izq_Final[2])*RH_factor_izq,(Translation[1] - Codo_izq_Final[0])*RH_factor_izq,(Translation[2] - Codo_izq_Final[1])*RH_factor_izq]
             Robot_Muneca_izq = [(Translation[0] - Muneca_izq_Final[2])*RH_factor_izq,(Translation[1] - Muneca_izq_Final[0])*RH_factor_izq,(Translation[2] - Muneca_izq_Final[1])*RH_factor_izq]
+
             
-            Robot_Hombro_der = [0,0,0] # El origen para el brazo derecho es el hombro derecho
+            Robot_Hombro_der = [0,0,0] 
             Translation = [(Robot_Hombro_der[0] + Hombro_der_Final[2]),(Robot_Hombro_der[1] + Hombro_der_Final[0]),(Robot_Hombro_der[2] + Hombro_der_Final[1])]
 
             Robot_Hombro_der = [(Translation[0] - Hombro_der_Final[2]),(Translation[1] - Hombro_der_Final[0]),(Translation[2]- Hombro_der_Final[1])]
             Robot_Codo_der = [(Translation[0] - Codo_der_Final[2])*RH_factor_der,(Translation[1] - Codo_der_Final[0])*RH_factor_der,(Translation[2] - Codo_der_Final[1])*RH_factor_der]
             Robot_Muneca_der = [(Translation[0] - Muneca_der_Final[2])*RH_factor_der,(Translation[1] - Muneca_der_Final[0])*RH_factor_der,(Translation[2] - Muneca_der_Final[1])*RH_factor_der]
-            #Robot_Muneca_der = (X aumenta hacia delante, Y aumenta hacia izquierda, Z aumenta hacia arriba) Sistema coordenadas robot
-
-            #print(f"RobotCodoIzq: {Robot_Codo_izq}")
-            #print(f"RobotMunecaDer: {Robot_Muneca_der}")
-            #print(f"RobotHombroIzq: {Robot_Hombro_izq}")
-            #print(f"RobotHombroDer: {Robot_Hombro_der}")
 
 
-            '''Hand points'''
+            #cv2.putText(images, "Right", (int(Muneca_der_3D.x), int(Muneca_der_3D.y)), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
+            '''Labels'''
             landmarks_izquierda = []
             landmarks_derecha = []
             
-            for hand_num, hand_landmarks in enumerate(results.multi_hand_landmarks):
+            for hand_num, hand_landmarks in enumerate(resultsHands.multi_hand_landmarks):
                 mpDraw.draw_landmarks(images, hand_landmarks, mpHands.HAND_CONNECTIONS)
                 landmarks = []
 
                 for landmark in hand_landmarks.landmark:
                     landmarks.append(landmark)
 
-                if results.multi_handedness[hand_num].classification[0].label == 'Left':
+                if resultsHands.multi_handedness[hand_num].classification[0].label == 'Left':
+                    landmarks_izquierda.append(landmarks)
+                else:
+                    landmarks_derecha.append(landmarks)
+
+            '''Hand points'''
+            landmarks_izquierda = []
+            landmarks_derecha = []
+            
+            for hand_num, hand_landmarks in enumerate(resultsHands.multi_hand_landmarks):
+                mpDraw.draw_landmarks(images, hand_landmarks, mpHands.HAND_CONNECTIONS)
+                landmarks = []
+
+                for landmark in hand_landmarks.landmark:
+                    landmarks.append(landmark)
+
+                if resultsHands.multi_handedness[hand_num].classification[0].label == 'Left':
                     landmarks_izquierda.append(landmarks)
                 else:
                     landmarks_derecha.append(landmarks)
@@ -848,7 +815,7 @@ while True:
                 Trece_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Trece_izq_X,Trece_izq_Y],Trece_izq_Z)
                 Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
 
-                print(f"Cero_izq: {Cero_izq_3D}")
+                #print(f"Cero_izq: {Cero_izq_3D}")
 
 
                 '''Left hand orientation'''
@@ -867,7 +834,7 @@ while True:
                 #print("Left Rotations")
                 #print(MatRot_izq)
 
-
+            
                 ''' Generate the left values for the UR3 robot'''
                 Punto_izq = [Robot_Muneca_izq[0],Robot_Muneca_izq[1],Robot_Muneca_izq[2],1] # Coge el punto de la muñeca del cuerpo para la matriz de transformacion homogenea
                 #print(Punto_izq)
@@ -1014,7 +981,7 @@ while True:
                 #print("Right Rotations")
                 #print(MatRot_der)
 
-
+                
                 ''' Generate the right values for the UR3 robot'''
                 Punto_der = [Robot_Muneca_der[0],Robot_Muneca_der[1],Robot_Muneca_der[2],1]
                 PuntoCodo_der= np.array([[Robot_Codo_der[0]],[Robot_Codo_der[1]],[Robot_Codo_der[2]]])
@@ -1087,8 +1054,9 @@ while True:
     cv2.imshow(name_of_window, images)
 
     key = cv2.waitKey(1)
-    if key & 0xFF == ord('q') or key == 27 or elapsed_time >= 40:
+    if key & 0xFF == ord('q') or key == 27 or elapsed_time >= 10:
         break
+
 
 
 '''Filter orientation using a Gaussian Filter'''
@@ -1104,7 +1072,9 @@ X_End_Der,Y_End_Der,Z_End_Der = smooth_endeffector(DATOSPRE_DER,1)
 X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq = smooth_elbow(CORCODOPRE_IZQ,1)
 X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der = smooth_elbow(CORCODOPRE_DER,1)
 
-print("**********************")
+
+print("*********************************************")
+
 
 '''Save data filtered'''
 for n in range(len(L1)):
@@ -1146,34 +1116,35 @@ for n in range(len(X_Elbow_Der)):
 ''' Save all the values in .csv'''
 # DATOS_IZQ es una lista donde cada elemento es una matriz de transformación homogénea 4x4
 variable = np.asarray(DATOS_IZQ).shape # Convierte DATOS_IZQ en un array de numpy, .shape da las dimensiones del array
-#print("DATOS IZQ: ",variable) # Número de matrices de transformacion homogeneas
+print("DATOS IZQ: ",variable) # Número de matrices de transformacion homogeneas
 DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1)) # Reorganiza el array anterior en uno de 4 columnas con las matrices una debajo de otra
 #print(np.asarray(DATOS_IZQ).shape)
 ModeloIzq = pd.DataFrame(DATOS_IZQ) # Crea una tabla o data frame de Pandas
-ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
+ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba41/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
 
 variable2 = np.asarray(DATOS_DER).shape
+print("DATOS DER: ",variable2)
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
 ModeloDer = pd.DataFrame(DATOS_DER)
-ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/DatosBrazoDerecho.csv',index=False, header=False) 
+ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba41/DatosBrazoDerecho.csv',index=False, header=False) 
 
 # CORCODO_IZQ es una lista donde cada elemento es una matriz 3x1 con las coordenadas del codo izquierdo
 variable3 = np.asarray(CORCODO_IZQ).shape 
 CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1)) # Reorganiza el array anterior en uno de una única columna y tres veces el número de filas que de puntos
 #print(CORCODO_IZQ)
 ModeloCodoIzq = pd.DataFrame(CORCODO_IZQ)
-ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/CodoIzquierdo.csv',index=False, header=False)
+ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba41/CodoIzquierdo.csv',index=False, header=False)
 
 variable4 = np.asarray(CORCODO_DER).shape
 CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
 ModeloCodoDer = pd.DataFrame(CORCODO_DER)
-ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/CodoDerecho.csv',index=False, header=False)
+ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba41/CodoDerecho.csv',index=False, header=False)
 
 ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
-ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/EfectorFinalIzquierdo.csv',index=False, header=False)
+ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba41/EfectorFinalIzquierdo.csv',index=False, header=False)
 
 ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
-ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba23/EfectorFinalDerecho.csv',index=False, header=False)
+ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba41/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
 pipeline.stop()
@@ -1183,6 +1154,5 @@ print("Application Closed.")
 plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
 plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
-#plot_hand_orientations(angulos_izq, angulos_der)
-
-
+#plot_hand_orientations(angulos_izq,angulos_der,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+#plot_visibility(Hombro_izq_v,Hombro_der_v,Codo_izq_v,Codo_der_v,Muneca_izq_v,Muneca_der_v)

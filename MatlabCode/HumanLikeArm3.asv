@@ -70,10 +70,10 @@ svD.Environment = env;
 %% Inverse kinematics solver
 
 % Read the files
-path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/DatosBrazoIzquierdo.csv';
-path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/CodoIzquierdo.csv';
-path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/DatosBrazoDerecho.csv';
-path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/CodoDerecho.csv';
+path_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba32/DatosBrazoIzquierdo.csv';
+path2_izq = '/home/carlos/TAICHI_Carlos/HumanData/Prueba32/CodoIzquierdo.csv';
+path_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba32/DatosBrazoDerecho.csv';
+path2_der = '/home/carlos/TAICHI_Carlos/HumanData/Prueba32/CodoDerecho.csv';
 
 MatrixIzqRead = readmatrix(path_izq); % Almacena los datos del .csv en una matriz
 CodoIzqRead = readmatrix(path2_izq);
@@ -128,17 +128,17 @@ Goal_Der = [];
 Goal2_Der = [];
 MatrixCodoDer = zeros(4,4);
 
-k=0;
+ki=0;
 
 for i=1:4:iter_izq % i va de 4 en 4 porque las matrices de transformacion homogeneas son 4x4
-    k = k+1; % Numero de iteraciones del bucle
+    ki = ki+1; % Numero de iteraciones del bucle
     DistMinIzq = 10000000;
-    Dist = DistMinIzq;
+    DistI = DistMinIzq;
     iteration = 0;
     check = true;
     
     % Elbow matrix
-    VectorCodoIzq = [CodoIzqOrganizado(k,1), CodoIzqOrganizado(k,2), CodoIzqOrganizado(k,3)]; % Coge una fila de la matriz de posiciones de del codo y la guarda como vector
+    VectorCodoIzq = [CodoIzqOrganizado(ki,1), CodoIzqOrganizado(ki,2), CodoIzqOrganizado(ki,3)]; % Coge una fila de la matriz de posiciones de del codo y la guarda como vector
     VEC_CODO_IZQ = [VEC_CODO_IZQ; VectorCodoIzq]; % Va almacenando los vectores anteriores en una matriz, supongo que esto se hace para que haya el mismo numero de vectores de posicion del codo que de matrices de transformacion homogeneas
 
     % End Efector matrix
@@ -163,13 +163,14 @@ for i=1:4:iter_izq % i va de 4 en 4 porque las matrices de transformacion homoge
     EulerAngles_Goal2_Izq = rotm2eul(Rot_Goal2_Izq); % Pasa de matriz de rotacion a angulos de Euler
     Quat_Goal2_Izq = eul2quat(EulerAngles_Goal2_Izq); % Pasa de angulos de Euler a cuaterniones
     
-
+    disp(' ')
     disp("------------- NEW LEFT ARM ITERATION -------------")
-    disp(k)
+    disp(ki)
    
     % IK using UR3_Inverse_Kinematics
     try
         IK_UR % Con MatrixIzq
+        %disp(res)
 
         for ii = 1:1:8
             for jj = 1:1:6 % res son los resultados de UR3_Inverse_Kinematics, 8 soluciones con 6 articulaciones
@@ -180,6 +181,7 @@ for i=1:4:iter_izq % i va de 4 en 4 porque las matrices de transformacion homoge
             GoalConfigIzq = [configSolnIzq(1).JointPosition configSolnIzq(2).JointPosition configSolnIzq(3).JointPosition configSolnIzq(4).JointPosition configSolnIzq(5).JointPosition configSolnIzq(6).JointPosition];
             [validState,~] = checkCollision(robotModelIzq,GoalConfigIzq',env,"IgnoreSelfCollision","off","Exhaustive","on","SkippedSelfCollisions","parent");
             if ~any(validState)
+                %disp('No collisions')
 
                 % End efector for the specific configuration
                 EfectorFinalIzq = getTransform(robotIzq,configSolnIzq,'tool0','base_link'); % Matriz de transformacion homogenea del EF respecto a la base en funcion de la configuracion
@@ -227,7 +229,8 @@ for i=1:4:iter_izq % i va de 4 en 4 porque las matrices de transformacion homoge
                 
                 % Final error
                 DistIzq = real(WX*DistXIzq + WO*DistOIzq + WH*DistMIzq + ErroWristIzq); % Pondera los errores calculados anteriormente
-                
+                %disp(DistIzq)
+
                 CodoRotIzq = rotx(45)*X_CodoIzq';
                 WristRotIzq= rotx(45)*X_Wrist1Izq';
 
@@ -237,41 +240,54 @@ for i=1:4:iter_izq % i va de 4 en 4 porque las matrices de transformacion homoge
                     MejorConfigIzq = [configSolnIzq(1).JointPosition configSolnIzq(2).JointPosition configSolnIzq(3).JointPosition configSolnIzq(4).JointPosition configSolnIzq(5).JointPosition configSolnIzq(6).JointPosition];
                     mejor_ii = ii; % Se guarda la mejor configuracion
                 end
+
+            else
+                %disp('Collision')        
             end
+
         end
 
-        if DistMinIzq ~= Dist % Si la distancia minima no es la distancia inicial
+        if DistMinIzq ~= DistI % Si la distancia minima no es la distancia inicial
+            disp(' ')
+            disp('Valid configuration found')
             WristOldIzq = MejorConfigIzq(1,4); 
             MEJORES_IZQ = [MEJORES_IZQ;mejor_ii];
             ConfigFinalIzq = [ConfigFinalIzq; MejorConfigIzq];
             ROTMAT_IZQ = [ROTMAT_IZQ;Rot_Goal2_Izq];
 
-        else
+        elseif exist('MejorConfigIzq', 'var')
+            disp(' ')
             disp('Not valid configuration found')
-            WorstIzq = k;
+            ConfigFinalIzq = [ConfigFinalIzq; MejorConfigIzq];
+            WorstIzq = ki;
             PEORES_IZQ = [PEORES_IZQ;WorstIzq];
-            dif
+
+        else 
+
+        
         end
 
     catch
+        disp(' ')
         disp('Wrong IK value')
     end   
     
 end
 
-k=0;
+
+kd=0;
 
 % PARTE DERECHA
 
 for i=1:4:iter_der
-    k = k+1;
+    kd = kd+1;
     DistMinDer = 10000000;
-    Dist = DistMinDer;
+    DistR = DistMinDer;
     iteration = 0;
     check = true;
     
     % Elbow matrix
-    VectorCodoDer = [CodoDerOrganizado(k,1), CodoDerOrganizado(k,2), CodoDerOrganizado(k,3)];
+    VectorCodoDer = [CodoDerOrganizado(kd,1), CodoDerOrganizado(kd,2), CodoDerOrganizado(kd,3)];
     VEC_CODO_DER = [VEC_CODO_DER; VectorCodoDer];
 
     % End efector matrix
@@ -297,12 +313,14 @@ for i=1:4:iter_der
     EulerAngles_Goal2_Der = rotm2eul(Rot_Goal2_Der); 
     Quat_Goal2_Der = eul2quat(EulerAngles_Goal2_Der);
     
+    disp(' ')
     disp("------------- NEW RIGHT ARM ITERATION -------------")
-    disp(k)
+    disp(kd)
    
     try
         IK_UR % Con MatrixDer
-
+        %disp(res)
+        
         for ii = 1:1:8
             for jj = 1:1:6 
                 configSolnDer(jj).JointPosition = res(ii,jj);
@@ -311,7 +329,7 @@ for i=1:4:iter_der
             GoalConfigDer = [configSolnDer(1).JointPosition configSolnDer(2).JointPosition configSolnDer(3).JointPosition configSolnDer(4).JointPosition configSolnDer(5).JointPosition configSolnDer(6).JointPosition];
             [validState,~] = checkCollision(robotModelDer,GoalConfigDer',env,"IgnoreSelfCollision","off","Exhaustive","on","SkippedSelfCollisions","parent");
             if ~any(validState)
-
+                %disp('No collisions ')
                 % End efector for the specific configuration
                 EfectorFinalDer = getTransform(robotDer,configSolnDer,'tool0','base_link');
                 X_Der = [EfectorFinalDer(1,4) EfectorFinalDer(2,4) EfectorFinalDer(3,4)]; 
@@ -356,7 +374,8 @@ for i=1:4:iter_der
                 end
 
                 DistDer = real(WX*DistXDer + WO*DistODer + WH*DistMDer + ErroWristDer);
-                
+                %disp(DistDer)
+
                 CodoRobotRotDer = rotx(-45)*X_CodoDer';
                 WristRobotRotDer= rotx(-45)*X_Wrist1Der';                
 
@@ -366,27 +385,48 @@ for i=1:4:iter_der
                     MejorConfigDer = [configSolnDer(1).JointPosition configSolnDer(2).JointPosition configSolnDer(3).JointPosition configSolnDer(4).JointPosition configSolnDer(5).JointPosition configSolnDer(6).JointPosition];
                     mejor_ii = ii;
                 end
+
+            else
+                %disp('Collision')
             end
+
         end
 
-        if DistMinDer ~= Dist
+        if DistMinDer ~= DistR
+            disp(' ')
+            disp('Valid configuration found')
+
+            figure(2);
+            zoom(gca,'on');
+            show(robotModelDer,MejorConfigDer,"Collisions","off")
+            camzoom(1.7); 
+            hold on
+            show(env{1});
+            show(env{2});
+            show(env{3});
+            show(env{4});
+            hold off
+
             WristOldDer = MejorConfigDer(1,4);
             MEJORES_DER = [MEJORES_DER;mejor_ii];
             ConfigFinalDer = [ConfigFinalDer;MejorConfigDer];
             ROTMAT_DER = [ROTMAT_DER;Rot_Goal2_Der];
 
         else
+            disp(' ')
             disp('Not valid configuration found')
-            WorstDer = k;
+            WorstDer = kd;
             PEORES_DER = [PEORES_DER;WorstDer];
-            dif
+            
         end
-
+   
     catch
+        disp(' ')
         disp('Wrong IK value')
-    end   
-    
+    end     
 end
+
+
 
 % Filter the incorrect data and correct the position values
 Goal_Izq(PEORES_IZQ,:) = [];
@@ -412,10 +452,10 @@ TIzq = [1 0 0 0.07;0 0.7071 0.7071 0.13;0 -0.7071 0.7071 1.15;0 0 0 1];
 setFixedTransform(robotIzq.Bodies{1,1}.Joint,TIzq);
 configuracionesIzq = robotIzq.homeConfiguration;
 
-k=0;
+m=0;
 
 for i=1:1:length(ConfigFinalIzq)
-    k = k+1
+    m = m+1
 
     configuracionesIzq(1).JointPosition = ConfigFinalIzq(i,1); % Establece la ConfigFinal como la configuracion del robot
     configuracionesIzq(2).JointPosition = ConfigFinalIzq(i,2);
@@ -427,7 +467,7 @@ for i=1:1:length(ConfigFinalIzq)
     figure(1);
     zoom(gca,'on'); % Zoom en los ejes actuales (get current axes)
     show(robotIzq,configuracionesIzq,"Collisions","off"); % Muestra el robot con la ConfigFinal
-    view(90,0);
+    %view(90,0);
 
     Codo_Izq = getTransform(robotIzq,configuracionesIzq,'forearm_link','base_link'); 
     COD_IZQ = [COD_IZQ; Codo_Izq(1,4) Codo_Izq(2,4) Codo_Izq(3,4)]; % Guarda las posiciones del codo respecto a la base, el hombro
@@ -440,12 +480,12 @@ for i=1:1:length(ConfigFinalIzq)
     show(env{4}); % Muestra el cuerpo del robot
     hold on
 
-    plot3(VEC_CODO_IZQ(k,1)+0.07, VEC_CODO_IZQ(k,2)+0.13, VEC_CODO_IZQ(k,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
-    plot3(Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
+    plot3(VEC_CODO_IZQ(m,1)+0.07, VEC_CODO_IZQ(m,2)+0.13, VEC_CODO_IZQ(m,3)+1.15,'o','Color','g','MarkerSize',10,'MarkerFaceColor','g')
+    plot3(Goal_Izq(m,1),Goal_Izq(m,2),Goal_Izq(m,3),'o','Color','r','MarkerSize',10,'MarkerFaceColor','r')
     hold on
 
     PuntoEndIzq = getTransform(robotIzq,configuracionesIzq,'tool0','base_link');
-    PuntoIzq = [Goal_Izq(k,1),Goal_Izq(k,2),Goal_Izq(k,3)];
+    PuntoIzq = [Goal_Izq(m,1),Goal_Izq(m,2),Goal_Izq(m,3)];
     END_IZQ = [END_IZQ; PuntoEndIzq(1,4), PuntoEndIzq(2,4), PuntoEndIzq(3,4)];
     ROTEND_IZQ = [ROTEND_IZQ; PuntoEndIzq(1,1),PuntoEndIzq(1,2),PuntoEndIzq(1,3); PuntoEndIzq(2,1),PuntoEndIzq(2,2),PuntoEndIzq(2,3); PuntoEndIzq(3,1),PuntoEndIzq(3,2),PuntoEndIzq(3,3)];
 
@@ -473,7 +513,7 @@ for i=1:1:length(ConfigFinalDer)
     figure(2);
     zoom(gca,'on');
     show(robotDer,configuracionesDer,"Collisions","off");
-    view(90,0);
+    %view(90,0);
     
     Codo_Der = getTransform(robotDer,configuracionesDer,'forearm_link','base_link');
     COD_DER = [COD_DER; Codo_Der(1,4) Codo_Der(2,4) Codo_Der(3,4)];

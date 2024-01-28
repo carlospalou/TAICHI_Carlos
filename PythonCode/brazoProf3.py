@@ -38,16 +38,12 @@ def calculate_angle(a,b,c):
     return angle 
 
 def HandPlaneOrientation(points, hand):
-    ''' Obtain the Z vector of the final efector as the ortogonal vector of the hand plane'''
-  
     z_vec = np.cross(points[0] - points[2], points[0] - points[1])
     x_vec = (points[2]-points[1])
-    z_vec /= np.linalg.norm(z_vec) # Lo divide por su norma para volverlo unitario
+    z_vec /= np.linalg.norm(z_vec) 
     x_vec /= np.linalg.norm(x_vec)
     y_vec = np.cross(z_vec,x_vec)
     y_vec /= np.linalg.norm(y_vec)
-
-    #print(z_vec, hand) 
 
     angle = 90
 
@@ -59,12 +55,12 @@ def HandPlaneOrientation(points, hand):
             [x_vec[2],y_vec[2],-1*z_vec[2]]
             ])
 
-        Rox = np.matrix([   #Rotación 90º en x
+        Rox = np.matrix([   #90º rotation in x
             [1, 0, 0],
             [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
             [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
             ])   
-        Roz = np.matrix([   #Rotación -90º en z
+        Roz = np.matrix([   #-90º rotation in z
             [mt.cos(-mt.radians(angle)), -mt.sin(-mt.radians(angle)), 0],
             [mt.sin(-mt.radians(angle)), mt.cos(-mt.radians(angle)), 0],
             [0, 0, 1]
@@ -73,9 +69,8 @@ def HandPlaneOrientation(points, hand):
         Rotacional = np.matmul(Rox,Roz)
         Rotacional = np.linalg.inv(Rotacional)
         MatRot = np.matmul(Rotacional,Mat)
-    
-        #print(MatRot)
-
+   
+        '''
     elif hand == 1:
         Mat = np.matrix([
             [x_vec[0],y_vec[0],z_vec[0]], 
@@ -83,12 +78,12 @@ def HandPlaneOrientation(points, hand):
             [x_vec[2],y_vec[2],z_vec[2]]
             ])
         
-        Rox = np.matrix([   #Rotación 90º en x
+        Rox = np.matrix([   #90º rotation in x
             [1, 0, 0],
             [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
             [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
             ])
-        Roz = np.matrix([   #Rotación 90º en z
+        Roz = np.matrix([   #90º rotation in  z
             [mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle)), 0],
             [mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle)), 0],
             [0, 0, 1]
@@ -97,8 +92,29 @@ def HandPlaneOrientation(points, hand):
         Rotacional = np.matmul(Rox,Roz)
         Rotacional = np.linalg.inv(Rotacional)
         MatRot = np.matmul(Rotacional,Mat)
- 
-        #print(MatRot)
+        S'''
+
+    elif hand == 1:
+        Mat = np.matrix([
+            [x_vec[0],y_vec[0],z_vec[0]], 
+            [x_vec[1],y_vec[1],z_vec[1]],
+            [x_vec[2],y_vec[2],z_vec[2]]
+            ])
+        
+        Rox = np.matrix([   #90º rotation in x
+            [1, 0, 0],
+            [0, mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle))],
+            [0, mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle))]
+            ])
+        Roz = np.matrix([   #90º rotation in  z
+            [mt.cos(mt.radians(angle)), -mt.sin(mt.radians(angle)), 0],
+            [mt.sin(mt.radians(angle)), mt.cos(mt.radians(angle)), 0],
+            [0, 0, 1]
+            ])
+        
+        Rotacional = np.matmul(Rox,Roz)
+        Rotacional = np.linalg.inv(Rotacional)
+        MatRot = np.matmul(Rotacional,Mat)
 
     return MatRot
 
@@ -207,64 +223,64 @@ def plot_smoothed_rotations(datosIzq,datosDer,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R
         if i % 6 == 0:
             axs[i].set_ylabel("Axis {}".format(i//6))
 
-    axs[0].plot(L1, label='filter')
     axs[0].plot(datosIzq[:,0,0], label='raw')
+    axs[0].plot(L1, label='filter')
     axs[0].legend()
-    axs[1].plot(L2, label='filter')
     axs[1].plot(datosIzq[:,0,1], label='raw')
+    axs[1].plot(L2, label='filter')
     axs[1].legend()
-    axs[2].plot(L3, label='filter')
     axs[2].plot(datosIzq[:,0,2], label='raw')
+    axs[2].plot(L3, label='filter')
     axs[2].legend()
 
-    axs[3].plot(R1, label='filter')
     axs[3].plot(datosDer[:,0,0], label='raw')
+    axs[3].plot(R1, label='filter')
     axs[3].legend()
-    axs[4].plot(R2, label='filter')
     axs[4].plot(datosDer[:,0,1], label='raw')
+    axs[4].plot(R2, label='filter')
     axs[4].legend()
+    axs[5].plot(datosDer[:,0,2], label='raw')
     axs[5].plot(R3, label='filter')
-    axs[5].plot(datosIzq[:,0,2], label='raw')
     axs[5].legend()
 
-    axs[6].plot(L4, label='filter')
     axs[6].plot(datosIzq[:,1,0], label='raw')
+    axs[6].plot(L4, label='filter')
     axs[6].legend()
-    axs[7].plot(L5, label='filter')
     axs[7].plot(datosIzq[:,1,1], label='raw')
+    axs[7].plot(L5, label='filter')
     axs[7].legend()
-    axs[8].plot(L6, label='filter')
     axs[8].plot(datosIzq[:,1,2], label='raw')
+    axs[8].plot(L6, label='filter')
     axs[8].legend()
 
-    axs[9].plot(R4, label='filter')
     axs[9].plot(datosDer[:,1,0], label='raw')
+    axs[9].plot(R4, label='filter')
     axs[9].legend()
-    axs[10].plot(R5, label='filter')
     axs[10].plot(datosDer[:,1,1], label='raw')
+    axs[10].plot(R5, label='filter')
     axs[10].legend()
-    axs[11].plot(R6, label='filter')
     axs[11].plot(datosDer[:,1,2], label='raw')
+    axs[11].plot(R6, label='filter')
     axs[11].legend()
 
-    axs[12].plot(L7, label='filter')
     axs[12].plot(datosIzq[:,2,0], label='raw')
+    axs[12].plot(L7, label='filter')
     axs[12].legend()
-    axs[13].plot(L8, label='filter')
     axs[13].plot(datosIzq[:,2,1], label='raw')
+    axs[13].plot(L8, label='filter')
     axs[13].legend()
-    axs[14].plot(L9, label='filter')
     axs[14].plot(datosIzq[:,2,2], label='raw')
+    axs[14].plot(L9, label='filter')
     axs[14].legend()
 
-    axs[15].plot(R7, label='filter')
     axs[15].plot(datosDer[:,2,0], label='raw')
+    axs[15].plot(R7, label='filter')
     axs[15].legend()
-    axs[16].plot(R8, label='filter')
     axs[16].plot(datosDer[:,2,1], label='raw')
+    axs[16].plot(R8, label='filter')
     axs[16].legend()
-    axs[17].plot(R9, label='filter')
     axs[17].plot(datosDer[:,2,2], label='raw')
+    axs[17].plot(R9, label='filter')
     axs[17].legend()
 
     fig.suptitle("Rotations", fontsize=16)
@@ -536,7 +552,7 @@ print("Depth Scale for Camera SN",device,"is: ",depth_scale)
 
 # ====== Set clipping distance ======
 ''' Generate the maximun distance for the camera range to detect'''
-clipping_distance_in_meters = 5
+clipping_distance_in_meters = 1.8
 clipping_distance = clipping_distance_in_meters / depth_scale
 print("Configuration Successful for SN", device)
 
@@ -547,9 +563,12 @@ print("Starting to capture images on SN:",device)
 # ======= Algorithm =========
 
 time.sleep(2)
+start_time = time.time()
 
 while True:
-    start_time = dt.datetime.today().timestamp()
+
+    current_time = time.time() 
+    elapsed_time = current_time - start_time
 
     '''Get and align frames from the camera to the point cloud'''
     frames = pipeline.wait_for_frames()
@@ -603,8 +622,8 @@ while True:
         Muneca_der_v.append(Muneca_der_3D.visibility)
 
         #print(f"CodoIzq: {Codo_izq_3D}")
-        print(f"MunecaIzq: {Muneca_izq_3D}")
-        print(f"MunecaDer: {Muneca_der_3D}")
+        #print(f"MunecaIzq: {Muneca_izq_3D}")
+        #print(f"MunecaDer: {Muneca_der_3D}")
         #print(f"HombroIzq: {Hombro_izq_3D}")
         #print(f"HombroDer: {Hombro_der_3D}")
 
@@ -738,7 +757,7 @@ while True:
                 else:
                     world_landmarks_derecha.append(landmarks)
 
-            if world_landmarks_izquierda:
+            if world_landmarks_izquierda and world_landmarks_derecha:
 
                 cv2.putText(images, "Left", (int(landmarks_izquierda[0][0].x*len(depth_image_flipped[0])), int(landmarks_izquierda[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
                 
@@ -749,8 +768,6 @@ while True:
                 Cero_izq_3D = [Cero_izq.x, Cero_izq.y, Cero_izq.z]
                 Cinco_izq_3D = [Cinco_izq.x, Cinco_izq.y, Cinco_izq.z]
                 Diecisiete_izq_3D = [Diecisiete_izq.x, Diecisiete_izq.y, Diecisiete_izq.z]
-
-                #cv2.putText(images, "Origin", (int(Cero_izq.x) + int(Muneca_izq_3D.x*len(depth_image_flipped[0])), int(Cero_izq.y) + int(Muneca_izq_3D.y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
                 #print(f"Cero_izq: {Cero_izq_3D}")
 
@@ -808,7 +825,8 @@ while True:
             else:
                 print("No left hand data")
 
-            if world_landmarks_derecha:
+
+            if world_landmarks_derecha and world_landmarks_izquierda:
 
                 cv2.putText(images, "Right", (int(landmarks_derecha[0][0].x*len(depth_image_flipped[0])), int(landmarks_derecha[0][0].y*len(depth_image_flipped))), font, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
@@ -903,9 +921,7 @@ while True:
     cv2.imshow(name_of_window, images)
 
     key = cv2.waitKey(1)
-    # Press esc or 'q' to close the image window
-    if key & 0xFF == ord('q') or key == 27:
-        #print("User pressed break key for SN:",device)
+    if key & 0xFF == ord('q') or key == 27 or elapsed_time >= 10:
         break
 
 
@@ -966,41 +982,42 @@ for n in range(len(X_Elbow_Der)):
 ''' Save all the values in .csv'''
 # DATOS_IZQ es una lista donde cada elemento es una matriz de transformación homogénea 4x4
 variable = np.asarray(DATOS_IZQ).shape # Convierte DATOS_IZQ en un array de numpy, .shape da las dimensiones del array
-#print("DATOS IZQ: ",variable) # Número de matrices de transformacion homogeneas
+print("DATOS IZQ: ",variable) # Número de matrices de transformacion homogeneas
 DATOS_IZQ = np.reshape(DATOS_IZQ, (variable[0]*4, -1)) # Reorganiza el array anterior en uno de 4 columnas con las matrices una debajo de otra
 #print(np.asarray(DATOS_IZQ).shape)
 ModeloIzq = pd.DataFrame(DATOS_IZQ) # Crea una tabla o data frame de Pandas
-ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba31/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
+ModeloIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba32/DatosBrazoIzquierdo.csv',index=False, header=False) # Guarda la tabla con las matrices en un .csv
 
 variable2 = np.asarray(DATOS_DER).shape
+print("DATOS DER: ",variable2)
 DATOS_DER = np.reshape(DATOS_DER, (variable2[0]*4, -1))
 ModeloDer = pd.DataFrame(DATOS_DER)
-ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba31/DatosBrazoDerecho.csv',index=False, header=False) 
+ModeloDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba32/DatosBrazoDerecho.csv',index=False, header=False) 
 
 # CORCODO_IZQ es una lista donde cada elemento es una matriz 3x1 con las coordenadas del codo izquierdo
 variable3 = np.asarray(CORCODO_IZQ).shape 
 CORCODO_IZQ= np.reshape(CORCODO_IZQ, (variable3[0]*3, -1)) # Reorganiza el array anterior en uno de una única columna y tres veces el número de filas que de puntos
 #print(CORCODO_IZQ)
 ModeloCodoIzq = pd.DataFrame(CORCODO_IZQ)
-ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba31/CodoIzquierdo.csv',index=False, header=False)
+ModeloCodoIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba32/CodoIzquierdo.csv',index=False, header=False)
 
 variable4 = np.asarray(CORCODO_DER).shape
 CORCODO_DER= np.reshape(CORCODO_DER, (variable4[0]*3, -1))
 ModeloCodoDer = pd.DataFrame(CORCODO_DER)
-ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba31/CodoDerecho.csv',index=False, header=False)
+ModeloCodoDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba32/CodoDerecho.csv',index=False, header=False)
 
 ModeloEfectorFinalIzq = pd.DataFrame(EFECTOR_IZQ)
-ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba31/EfectorFinalIzquierdo.csv',index=False, header=False)
+ModeloEfectorFinalIzq.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba32/EfectorFinalIzquierdo.csv',index=False, header=False)
 
 ModeloEfectorFinalDer = pd.DataFrame(EFECTOR_DER)
-ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba31/EfectorFinalDerecho.csv',index=False, header=False)
+ModeloEfectorFinalDer.to_csv('/home/carlos/TAICHI_Carlos/HumanData/Prueba32/EfectorFinalDerecho.csv',index=False, header=False)
 
 ''' Close the application'''
 pipeline.stop()
 print("Application Closed.")
 
 
-#plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 #plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
 #plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
 #plot_hand_orientations(angulos_izq,angulos_der,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)

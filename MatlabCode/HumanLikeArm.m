@@ -54,11 +54,11 @@ sv.Environment = env;
 %path = '/home/carlos/TAICHI/HumanData/Prueba1/DatosBrazoHumano.csv';
 %path2 = '/home/carlos/TAICHI/HumanData/Prueba1/CodoHumano.csv';
 
-%path = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/DatosBrazoHumano.csv';
-%path2 = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/CodoHumano.csv';
+path = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/DatosBrazoHumano.csv';
+path2 = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/CodoHumano.csv';
 
-path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba5/DatosBrazoIzquierdo.csv';
-path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba5/CodoIzquierdo.csv';
+%path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/DatosBrazoIzquierdo.csv';
+%path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/CodoIzquierdo.csv';
 
 matrixRead = readmatrix(path);
 CodoRead = readmatrix(path2);
@@ -239,6 +239,7 @@ for i=1:1:length(configFinal)
     configuraciones(6).JointPosition = configFinal(i,6);
     zoom(gca,'on');
     show(robot,configuraciones,"Collisions","off");
+    view(90,0);
     CodoR = getTransform(robot,configuraciones,'forearm_link','base_link');
     CODRob = [CODRob;CodoR(1,4) CodoR(2,4) CodoR(3,4)];
     camzoom(1.7);

@@ -5,7 +5,7 @@ function [D] = distanceMetric(CodoH,W2,W1,W3,X_Codo,Hombro,Goal)
 %     C_W2 = norm(CodoH-W2);
 %     C_W1 = norm(CodoH-W1);
 %     C_W3 = norm(CodoH-W3);
-%     C_CR = norm(CodoH-CodoRobot);
+%     C_CR = norm(CodoH-X_Codo);
 %     C_HR = norm(CodoH-Hombro);
 %     D = 10*C_W1+300*C_CR+C_HR; % That cost function must be adapted for your problem 
 
