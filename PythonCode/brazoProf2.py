@@ -120,6 +120,17 @@ def project_end_efector(A, B, distance):
     projectionEndEfector = A + direction * distance
     return projectionEndEfector
 
+def root_mean_squared_error(raw_data, filtered_data):
+    if len(raw_data) != len(filtered_data):
+        raise ValueError("Las longitudes deben ser iguales.")
+
+    sum_sq_diff = 0  # Inicializar la suma de diferencias cuadradas
+    for i in range(len(raw_data)):
+        sum_sq_diff += (raw_data[i] - filtered_data[i]) ** 2
+    rmse = mt.sqrt(sum_sq_diff / len(raw_data))
+
+    return rmse
+
 def smooth_rotations(data, sigma=1):
     r11 = []
     r12 = []
@@ -152,7 +163,45 @@ def smooth_rotations(data, sigma=1):
     R8 = gaussian_filter(r32, sigma)
     R9 = gaussian_filter(r33, sigma)
 
+    rmse_rot_11 = root_mean_squared_error(r11, R1)
+    rmse_rot_12= root_mean_squared_error(r12, R2)
+    rmse_rot_13 = root_mean_squared_error(r13, R3)
+    rmse_rot_21 = root_mean_squared_error(r21, R4)
+    rmse_rot_22= root_mean_squared_error(r22, R5)
+    rmse_rot_23 = root_mean_squared_error(r23, R6)
+    rmse_rot_31 = root_mean_squared_error(r31, R7)
+    rmse_rot_32= root_mean_squared_error(r32, R8)
+    rmse_rot_33 = root_mean_squared_error(r33, R9)
+
+    rmse_rot = (rmse_rot_11 + rmse_rot_12 + rmse_rot_13 + rmse_rot_21 + rmse_rot_22 + rmse_rot_23 + rmse_rot_31 + rmse_rot_32 + rmse_rot_33)/9
+
+    #print(f"rmse_rotations: {rmse_rot}")
+
     return R1,R2,R3,R4,R5,R6,R7,R8,R9
+
+def smooth_angles(data, sigma=1):
+    X = []
+    Y = []
+    Z = []
+
+    for r in data:
+        X.append(r[0])
+        Y.append(r[1])
+        Z.append(r[2])
+
+    Ang_X = gaussian_filter(X, sigma)
+    Ang_Y = gaussian_filter(Y, sigma)
+    Ang_Z = gaussian_filter(Z, sigma)
+
+    rmse_ang_x = root_mean_squared_error(X, Ang_X)
+    rmse_ang_y= root_mean_squared_error(Y, Ang_Y)
+    rmse_ang_z = root_mean_squared_error(Z, Ang_Z)
+
+    rmse_ang = (rmse_ang_x + rmse_ang_y + rmse_ang_z)/3
+
+    print(f"rmse_orientations (grados): {rmse_ang}")
+
+    return Ang_X,Ang_Y,Ang_Z
 
 def smooth_endeffector(data, sigma=1):
     X = []
@@ -167,6 +216,14 @@ def smooth_endeffector(data, sigma=1):
     XEnd = gaussian_filter(X, sigma)
     YEnd = gaussian_filter(Y, sigma)
     ZEnd = gaussian_filter(Z, sigma)
+
+    rmse_end_x = root_mean_squared_error(X, XEnd)
+    rmse_end_y= root_mean_squared_error(Y, YEnd)
+    rmse_end_z = root_mean_squared_error(Z, ZEnd)
+
+    rmse_end = (rmse_end_x + rmse_end_y + rmse_end_z)/3
+
+    print(f"rmse_end (cm): {rmse_end*100}")
 
     return XEnd,YEnd,ZEnd
 
@@ -184,7 +241,56 @@ def smooth_elbow(elbow, sigma=1):
     YElbow = gaussian_filter(Y, sigma)
     ZElbow = gaussian_filter(Z, sigma)
 
+    rmse_elbow_x = root_mean_squared_error(X, XElbow)
+    rmse_elbow_y= root_mean_squared_error(Y, YElbow)
+    rmse_elbow_z = root_mean_squared_error(Z, ZElbow)
+
+    rmse_elbow = (rmse_elbow_x + rmse_elbow_y + rmse_elbow_z)/3
+
+    print(f"rmse_elbow (cm): {rmse_elbow*100}")
+
     return XElbow,YElbow,ZElbow
+
+def plot_rotations(datosIzq,datosDer):
+    datosIzq = np.array(datosIzq)  
+    datosDer = np.array(datosDer)
+    fig, axs = plt.subplots(3, 6, figsize=(20,10))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4)
+    axs = axs.ravel() # Permite acceder a la matriz de subgráficos mediante un solo índice
+
+    for i in range(18):
+        if i == 1:
+            axs[i].set_title("Left\n\nRow {}".format(i))
+        elif i == 4:
+            axs[i].set_title("Right\n\nRow {}".format(i-3))
+        elif i < 3:
+            axs[i].set_title("Row {}".format(i))
+        elif i < 6:
+            axs[i].set_title("Row {}".format(i-3))
+        if i % 6 == 0:
+            axs[i].set_ylabel("Axis {}".format(i//6))
+
+    axs[0].plot(datosIzq[:,0,0])
+    axs[1].plot(datosIzq[:,0,1])
+    axs[2].plot(datosIzq[:,0,2])
+    axs[3].plot(datosDer[:,0,0])
+    axs[4].plot(datosDer[:,0,1])
+    axs[5].plot(datosDer[:,0,2])
+    axs[6].plot(datosIzq[:,1,0])
+    axs[7].plot(datosIzq[:,1,1])
+    axs[8].plot(datosIzq[:,1,2])
+    axs[9].plot(datosDer[:,1,0])
+    axs[10].plot(datosDer[:,1,1])
+    axs[11].plot(datosDer[:,1,2])
+    axs[12].plot(datosIzq[:,2,0])
+    axs[13].plot(datosIzq[:,2,1])
+    axs[14].plot(datosIzq[:,2,2])
+    axs[15].plot(datosDer[:,2,0])
+    axs[16].plot(datosDer[:,2,1])
+    axs[17].plot(datosDer[:,2,2])
+
+    fig.suptitle("Rotations", fontsize=16)
+    plt.show()
 
 def plot_smoothed_rotations(datosIzq,datosDer,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9):
     datosIzq = np.array(datosIzq)  
@@ -268,7 +374,7 @@ def plot_smoothed_rotations(datosIzq,datosDer,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R
     fig.suptitle("Rotations", fontsize=16)
     plt.show()
 
-def plot_hand_orientations(angulos_izq, angulos_der):
+def plot_hand_orientations(angulos_izq,angulos_der):
     angulos_izq = np.array(angulos_izq)
     angulos_der = np.array(angulos_der)
     fig, axs = plt.subplots(2, 3, figsize=(10,10))
@@ -291,22 +397,126 @@ def plot_hand_orientations(angulos_izq, angulos_der):
         X_Der.append(i[0])
         Y_Der.append(i[1])
         Z_Der.append(i[2])
-
    
     for i in range(6):
         if i == 1:
-            axs[i].set_title("Left")
+            axs[i].set_title("Left\nY Axis")
+        elif i == 0 or i == 3:
+            axs[i].set_title("X Axis")
+        elif i == 2 or i == 5:
+            axs[i].set_title("Z Axis")
         elif i == 4:
-            axs[i].set_title("Right")
+            axs[i].set_title("Right\nY Axis")
 
-    axs[0].plot(X_Izq)
-    axs[1].plot(Y_Izq)
+    axs[1].plot(X_Izq)
+    axs[0].plot(Y_Izq)
     axs[2].plot(Z_Izq)
-    axs[3].plot(X_Der)
-    axs[4].plot(Y_Der)
+    axs[4].plot(X_Der)
+    axs[3].plot(Y_Der)
     axs[5].plot(Z_Der)
+ 
+    fig.suptitle("Hand Orientation", fontsize=16)
+    plt.show()
+
+def plot_smoothed_hand_orientations(angulos_izq,angulos_der,Ang_X_Izq, Ang_Y_Izq, Ang_Z_Izq,Ang_X_Der, Ang_Y_Der, Ang_Z_Der):
+    angulos_izq = np.array(angulos_izq)
+    angulos_der = np.array(angulos_der)
+    fig, axs = plt.subplots(2, 3, figsize=(10,10))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4)
+    axs = axs.ravel()
+
+    X_Izq = []
+    Y_Izq = []
+    Z_Izq = []
+    X_Der = []
+    Y_Der = []
+    Z_Der = []
+
+    for i in angulos_izq:
+        X_Izq.append(i[0])
+        Y_Izq.append(i[1])
+        Z_Izq.append(i[2])
+    
+    for i in angulos_der:
+        X_Der.append(i[0])
+        Y_Der.append(i[1])
+        Z_Der.append(i[2])
+   
+    for i in range(6):
+        if i == 1:
+            axs[i].set_title("Left\nY Axis")
+        elif i == 0 or i == 3:
+            axs[i].set_title("X Axis")
+        elif i == 2 or i == 5:
+            axs[i].set_title("Z Axis")
+        elif i == 4:
+            axs[i].set_title("Right\nY Axis")
+
+    axs[1].plot(X_Izq,label='raw')
+    axs[1].plot(Ang_X_Izq,label='filter')
+    axs[1].legend()
+    axs[0].plot(Y_Izq,label='raw')
+    axs[0].plot(Ang_Y_Izq,label='filter')
+    axs[0].legend()
+    axs[2].plot(Z_Izq,label='raw')
+    axs[2].plot(Ang_Z_Izq,label='filter')
+    axs[2].legend()
+
+    axs[4].plot(X_Der,label='raw')
+    axs[4].plot(Ang_X_Der,label='filter')
+    axs[4].legend()
+    axs[3].plot(Y_Der,label='raw')
+    axs[3].plot(Ang_Y_Der,label='filter')
+    axs[3].legend()
+    axs[5].plot(Z_Der,label='raw')
+    axs[5].plot(Ang_Z_Der,label='filter')
+    axs[5].legend()
 
     fig.suptitle("Hand Orientation", fontsize=16)
+    plt.show()
+
+def plot_EndEffector(datosIzq,datosDer):
+    datosIzq = np.array(datosIzq)
+    datosDer = np.array(datosDer)  
+    fig, axs = plt.subplots(2, 3, figsize=(10,10))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4)
+    axs = axs.ravel()
+
+    X_Izq_r = []
+    Y_Izq_r = []
+    Z_Izq_r = []
+    X_Der_r = []
+    Y_Der_r = []
+    Z_Der_r = []
+
+    for r in datosIzq:
+        X_Izq_r.append(r[0,3])
+        Y_Izq_r.append(r[1,3])
+        Z_Izq_r.append(r[2,3])
+
+    for r in datosDer:
+        X_Der_r.append(r[0,3])
+        Y_Der_r.append(r[1,3])
+        Z_Der_r.append(r[2,3])
+
+    for i in range(6):
+        if i == 1:
+            axs[i].set_title("Left\nY Axis")
+        elif i == 0 or i == 3:
+            axs[i].set_title("X Axis")
+        elif i == 2 or i == 5:
+            axs[i].set_title("Z Axis")
+        elif i == 4:
+            axs[i].set_title("Right\nY Axis")
+
+    axs[0].plot(X_Izq_r)
+    axs[1].plot(Y_Izq_r)
+    axs[2].plot(Z_Izq_r)
+    axs[3].plot(X_Der_r)
+    axs[4].plot(Y_Der_r)
+    axs[5].plot(Z_Der_r)
+
+    fig.suptitle("End Effector",fontsize=16)
     plt.show()
 
 def plot_smoothed_EndEffector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
@@ -335,13 +545,13 @@ def plot_smoothed_EndEffector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_
 
     for i in range(6):
         if i == 1:
-            axs[i].set_title("Left\nRow {}".format(i))
-        elif i < 3:
-            axs[i].set_title("Row {}".format(i))
+            axs[i].set_title("Left\nY Axis")
+        elif i == 0 or i == 3:
+            axs[i].set_title("X Axis")
+        elif i == 2 or i == 5:
+            axs[i].set_title("Z Axis")
         elif i == 4:
-            axs[i].set_title("Right\nRow {}".format(i-3))
-        else:
-            axs[i].set_title("Row {}".format(i-3))
+            axs[i].set_title("Right\nY Axis")
 
     axs[0].plot(X_Izq_r,label='raw')
     axs[0].plot(X_Izq, label='filter')
@@ -364,6 +574,50 @@ def plot_smoothed_EndEffector(datosIzq,datosDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_
     axs[5].legend()
 
     fig.suptitle("End Effector", fontsize=16)
+    plt.show()
+
+def plot_Elbow(elbowIzq,elbowDer):
+    elbowIzq = np.array(elbowIzq)
+    elbowDer = np.array(elbowDer)   
+    fig, axs = plt.subplots(2, 3, figsize=(10,10))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4)
+    axs = axs.ravel()
+
+    X_Izq_r = []
+    Y_Izq_r = []
+    Z_Izq_r = []
+    X_Der_r = []
+    Y_Der_r = []
+    Z_Der_r = []
+
+    for r in elbowIzq:
+        X_Izq_r.append(r[0,0])
+        Y_Izq_r.append(r[1,0])
+        Z_Izq_r.append(r[2,0])
+
+    for r in elbowDer:
+        X_Der_r.append(r[0,0])
+        Y_Der_r.append(r[1,0])
+        Z_Der_r.append(r[2,0])
+
+    for i in range(6):
+        if i == 1:
+            axs[i].set_title("Left\nY Axis")
+        elif i == 0 or i == 3:
+            axs[i].set_title("X Axis")
+        elif i == 2 or i == 5:
+            axs[i].set_title("Z Axis")
+        elif i == 4:
+            axs[i].set_title("Right\nY Axis")
+
+    axs[0].plot(X_Izq_r)
+    axs[1].plot(Y_Izq_r)
+    axs[2].plot(Z_Izq_r)
+    axs[3].plot(X_Der_r)
+    axs[4].plot(Y_Der_r)
+    axs[5].plot(Z_Der_r)
+
+    fig.suptitle("Elbow",fontsize=16)
     plt.show()
 
 def plot_smoothed_Elbow(elbowIzq,elbowDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
@@ -392,13 +646,13 @@ def plot_smoothed_Elbow(elbowIzq,elbowDer,X_Izq,Y_Izq,Z_Izq,X_Der,Y_Der,Z_Der):
 
     for i in range(6):
         if i == 1:
-            axs[i].set_title("Left\nRow {}".format(i))
-        elif i < 3:
-            axs[i].set_title("Row {}".format(i))
+            axs[i].set_title("Left\nY Axis")
+        elif i == 0 or i == 3:
+            axs[i].set_title("X Axis")
+        elif i == 2 or i == 5:
+            axs[i].set_title("Z Axis")
         elif i == 4:
-            axs[i].set_title("Right\nRow {}".format(i-3))
-        else:
-            axs[i].set_title("Row {}".format(i-3))
+            axs[i].set_title("Right\nY Axis")
 
     axs[0].plot(X_Izq_r,label='raw')
     axs[0].plot(X_Izq, label='filter')
@@ -645,7 +899,7 @@ while True:
         #Muneca_der_3D = (X aumenta hacia derecha, Y aumenta hacia abajo, Z aumenta hacia atrás) Sistema coordenadas cámara
 
         #print(f"CodoIzq: {Codo_izq_3D}")
-        print(f"MunecaIzq: {Muneca_izq_3D}")
+        #print(f"MunecaIzq: {Muneca_izq_3D}")
         #print(f"HombroIzq: {Hombro_izq_3D}")
         #print(f"HombroDer: {Hombro_der_3D}")
 
@@ -848,7 +1102,7 @@ while True:
                 Trece_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Trece_izq_X,Trece_izq_Y],Trece_izq_Z)
                 Diecisiete_izq_3D = rs.rs2_deproject_pixel_to_point(INTR,[Diecisiete_izq_X,Diecisiete_izq_Y],Diecisiete_izq_Z)
 
-                print(f"Cero_izq: {Cero_izq_3D}")
+                #print(f"Cero_izq: {Cero_izq_3D}")
 
 
                 '''Left hand orientation'''
@@ -1087,7 +1341,7 @@ while True:
     cv2.imshow(name_of_window, images)
 
     key = cv2.waitKey(1)
-    if key & 0xFF == ord('q') or key == 27 or elapsed_time >= 40:
+    if key & 0xFF == ord('q') or key == 27 or elapsed_time >= 10:
         break
 
 
@@ -1103,6 +1357,9 @@ X_End_Der,Y_End_Der,Z_End_Der = smooth_endeffector(DATOSPRE_DER,1)
 
 X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq = smooth_elbow(CORCODOPRE_IZQ,1)
 X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der = smooth_elbow(CORCODOPRE_DER,1)
+
+Ang_X_Izq, Ang_Y_Izq, Ang_Z_Izq = smooth_angles(angulos_izq,1)
+Ang_X_Der, Ang_Y_Der, Ang_Z_Der = smooth_angles(angulos_der,1)
 
 print("**********************")
 
@@ -1180,9 +1437,13 @@ pipeline.stop()
 print("Application Closed.")
 
 
-plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+#plot_rotations(DATOSPRE_IZQ,DATOSPRE_DER)
+#plot_smoothed_rotations(DATOSPRE_IZQ,DATOSPRE_DER,L1,L2,L3,L4,L5,L6,L7,L8,L9,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+#plot_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER)
 plot_smoothed_EndEffector(DATOSPRE_IZQ,DATOSPRE_DER,X_End_Izq,Y_End_Izq,Z_End_Izq,X_End_Der,Y_End_Der,Z_End_Der)
+#plot_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER)
 plot_smoothed_Elbow(CORCODOPRE_IZQ,CORCODOPRE_DER,X_Elbow_Izq,Y_Elbow_Izq,Z_Elbow_Izq,X_Elbow_Der,Y_Elbow_Der,Z_Elbow_Der)
-#plot_hand_orientations(angulos_izq, angulos_der)
+#plot_hand_orientations(angulos_izq,angulos_der) 
+plot_smoothed_hand_orientations(angulos_izq,angulos_der,Ang_X_Izq, Ang_Y_Izq, Ang_Z_Izq,Ang_X_Der, Ang_Y_Der, Ang_Z_Der) 
 
 

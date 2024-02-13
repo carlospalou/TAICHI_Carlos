@@ -335,7 +335,7 @@ print("Depth Scale for Camera SN",device,"is: ",depth_scale)
 
 # ====== Set clipping distance ======
 ''' Generate the maximun distance for the camera range to detect'''
-clipping_distance_in_meters = 5
+clipping_distance_in_meters = 1.8
 clipping_distance = clipping_distance_in_meters / depth_scale
 print("Configuration Successful for SN", device)
 
@@ -344,8 +344,14 @@ print("Starting to capture images on SN:",device)
 
 
 # ======= Algorithm =========
+
+time.sleep(2)
+start_time = time.time()
+
 while True:
-    start_time = dt.datetime.today().timestamp()
+
+    current_time = time.time() 
+    elapsed_time = current_time - start_time
 
     '''Get and align frames from the camera to the point cloud'''
     frames = pipeline.wait_for_frames()
@@ -607,10 +613,9 @@ while True:
     '''Display images''' 
     cv2.namedWindow(name_of_window, cv2.WINDOW_AUTOSIZE)
     cv2.imshow(name_of_window, images)
+    
     key = cv2.waitKey(1)
-    # Press esc or 'q' to close the image window
-    if key & 0xFF == ord('q') or key == 27:
-        print("User pressed break key for SN:",device)
+    if key & 0xFF == ord('q') or key == 27 or elapsed_time >= 10:
         break
 
 '''Filter orientation using a Gaussian Filter'''
@@ -665,5 +670,5 @@ ModeloEfectorFinal.to_csv('/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntig
 print("Application Closing")
 pipeline.stop()
 print("Application Closed.")
-plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
+#plot_smoothed_rotations(DATOSPRE,R1,R2,R3,R4,R5,R6,R7,R8,R9)
 

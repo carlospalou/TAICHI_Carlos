@@ -57,8 +57,8 @@ sv.Environment = env;
 path = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/DatosBrazoHumano.csv';
 path2 = '/home/carlos/TAICHI_Carlos/HumanData/PruebaBrazoAntiguo/CodoHumano.csv';
 
-%path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/DatosBrazoIzquierdo.csv';
-%path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba31/CodoIzquierdo.csv';
+%path = '/home/carlos/TAICHI_Carlos/HumanData/Prueba32/DatosBrazoIzquierdo.csv';
+%path2 = '/home/carlos/TAICHI_Carlos/HumanData/Prueba32/CodoIzquierdo.csv';
 
 matrixRead = readmatrix(path);
 CodoRead = readmatrix(path2);
@@ -260,6 +260,13 @@ for i=1:1:length(configFinal)
     pause(0.001);
     hold off
 end
+
+%% Metrics
+
+frechetIzq = frechet(gola2, END)
+angularSimilarityIzq = angular_similarity(gola2, END)
+jerkIzqHuman = jerk(gola2)
+jerkIzqRobot = jerk(END)
 
 %% Plot in 3D (smoothed to visualized it better)
 figure;
